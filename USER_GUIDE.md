@@ -41,7 +41,7 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 ### Option B: Developer install
 
 ```bash
-git clone https://github.com/hiddenpath/spiderswitch.git
+git clone https://github.com/ailib-official/spiderswitch.git
 cd spiderswitch
 pip install -e .
 ```

@@ -41,7 +41,7 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 ### 方式 B：开发者安装
 
 ```bash
-git clone https://github.com/hiddenpath/spiderswitch.git
+git clone https://github.com/ailib-official/spiderswitch.git
 cd spiderswitch
 pip install -e .
 ```

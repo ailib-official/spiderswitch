@@ -278,7 +278,7 @@ async def get_available_models(user_id):
 
 ## 相关链接
 
-- **ai-protocol 官方文档**: [ai-protocol 文档](https://github.com/hiddenpath/ai-protocol)
+- **ai-protocol 官方文档**: [ai-protocol 文档](https://github.com/ailib-official/ai-protocol)
 - **产品支持**: 查看产品的「帮助」或「支持」页面
 - **问题反馈**: 通过产品内的反馈功能提交
 

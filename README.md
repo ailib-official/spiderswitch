@@ -3,7 +3,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
 
-MCP (Model Context Protocol) server that enables agents to dynamically switch AI models from the [ai-lib ecosystem](https://github.com/hiddenpath/ai-lib-python).
+MCP (Model Context Protocol) server that enables agents to dynamically switch AI models from the [ai-lib ecosystem](https://github.com/ailib-official/ai-lib-python).
 
 ## Features
 
@@ -24,7 +24,7 @@ MCP (Model Context Protocol) server that enables agents to dynamically switch AI
 
 ```bash
 # Clone the repository
-git clone https://github.com/hiddenpath/spiderswitch.git
+git clone https://github.com/ailib-official/spiderswitch.git
 cd spiderswitch
 
 # Install dependencies
@@ -364,7 +364,7 @@ pytest --cov=src/spiderswitch
 
 ### Testing with Mock Server
 
-Use [ai-protocol-mock](https://github.com/hiddenpath/ai-protocol-mock):
+Use [ai-protocol-mock](https://github.com/ailib-official/ai-protocol-mock):
 
 ```bash
 # Start mock server
@@ -406,10 +406,10 @@ Deterministic routing contract:
 
 ## Related Projects
 
-- [ai-protocol](https://github.com/hiddenpath/ai-protocol) - Protocol specification
-- [ai-lib-python](https://github.com/hiddenpath/ai-lib-python) - Python runtime SDK
-- [ai-lib-rust](https://github.com/hiddenpath/ai-lib-rust) - Rust runtime SDK
-- [ai-lib-ts](https://github.com/hiddenpath/ai-lib-ts) - TypeScript runtime SDK
+- [ai-protocol](https://github.com/ailib-official/ai-protocol) - Protocol specification
+- [ai-lib-python](https://github.com/ailib-official/ai-lib-python) - Python runtime SDK
+- [ai-lib-rust](https://github.com/ailib-official/ai-lib-rust) - Rust runtime SDK
+- [ai-lib-ts](https://github.com/ailib-official/ai-lib-ts) - TypeScript runtime SDK
 
 ## License
 

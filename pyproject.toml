@@ -50,10 +50,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/hiddenpath/spiderswitch"
-Repository = "https://github.com/hiddenpath/spiderswitch"
-Documentation = "https://github.com/hiddenpath/spiderswitch#readme"
-Issues = "https://github.com/hiddenpath/spiderswitch/issues"
+Homepage = "https://github.com/ailib-official/spiderswitch"
+Repository = "https://github.com/ailib-official/spiderswitch"
+Documentation = "https://github.com/ailib-official/spiderswitch#readme"
+Issues = "https://github.com/ailib-official/spiderswitch/issues"
 
 [project.scripts]
 spiderswitch = "spiderswitch.cli:main"

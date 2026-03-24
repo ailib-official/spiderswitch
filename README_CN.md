@@ -3,7 +3,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-green.svg)](LICENSE)
 
-MCP（Model Context Protocol）服务器，使Agent能够从[ai-lib生态系统](https://github.com/hiddenpath/ai-lib-python)动态切换AI模型。
+MCP（Model Context Protocol）服务器，使Agent能够从[ai-lib生态系统](https://github.com/ailib-official/ai-lib-python)动态切换AI模型。
 
 ## 功能特性
 
@@ -23,7 +23,7 @@ MCP（Model Context Protocol）服务器，使Agent能够从[ai-lib生态系统]
 
 ```bash
 # 克隆仓库
-git clone https://github.com/hiddenpath/spiderswitch.git
+git clone https://github.com/ailib-official/spiderswitch.git
 cd spiderswitch
 
 # 安装依赖
@@ -336,7 +336,7 @@ pytest --cov=src/spiderswitch
 
 ### 使用Mock服务器测试
 
-使用[ai-protocol-mock](https://github.com/hiddenpath/ai-protocol-mock)：
+使用[ai-protocol-mock](https://github.com/ailib-official/ai-protocol-mock)：
 
 ```bash
 # 启动mock服务器
@@ -369,10 +369,10 @@ mypy src
 
 ## 相关项目
 
-- [ai-protocol](https://github.com/hiddenpath/ai-protocol) - 协议规范
-- [ai-lib-python](https://github.com/hiddenpath/ai-lib-python) - Python运行时SDK
-- [ai-lib-rust](https://github.com/hiddenpath/ai-lib-rust) - Rust运行时SDK
-- [ai-lib-ts](https://github.com/hiddenpath/ai-lib-ts) - TypeScript运行时SDK
+- [ai-protocol](https://github.com/ailib-official/ai-protocol) - 协议规范
+- [ai-lib-python](https://github.com/ailib-official/ai-lib-python) - Python运行时SDK
+- [ai-lib-rust](https://github.com/ailib-official/ai-lib-rust) - Rust运行时SDK
+- [ai-lib-ts](https://github.com/ailib-official/ai-lib-ts) - TypeScript运行时SDK
 
 ## 许可证
 
