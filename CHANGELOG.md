@@ -6,6 +6,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-06-30
+
 ### Added
 - **Prompt-injection layer**: the MCP server now advertises `instructions` (auto-injected
   operating policy that tells agents when/how to switch models) and two MCP **prompts** —
@@ -42,8 +44,8 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - Unified public/runtime model-id resolution in a single `model_ids` module shared by
   the runtime inventory and the policy catalog, so `recommend_model` can no longer
   surface an id that `switch_model` cannot resolve.
-- Removed version contradictions: the plugin manifest now tracks `0.5.0` with the
-  `ailib-official` id, `scripts/verify.sh` reads the version from `pyproject.toml`, and
+- Removed version contradictions: the plugin manifest now tracks the package version with
+  the `ailib-official` id, `scripts/verify.sh` reads the version from `pyproject.toml`, and
   offline-install examples use a version-agnostic wheel placeholder. Added a test that
   guards manifest/package version drift.
 - Documentation now matches the implementation: README documents all six tools and a

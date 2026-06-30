@@ -35,7 +35,7 @@ try:
     # Single source of truth: read from installed package metadata (pyproject).
     __version__ = version("spiderswitch")
 except PackageNotFoundError:  # pragma: no cover - editable/source fallback
-    __version__ = "0.5.0"
+    __version__ = "0.6.0"
 
 
 __all__ = ["main", "__version__"]
