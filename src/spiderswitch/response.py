@@ -111,63 +111,6 @@ class MCPResponse:
         return cls(status="error", error_info=error_info, message=message)
 
 
-def format_error_response(
-    message: str,
-    error_type: str = "RuntimeError",
-    error_code: str | None = None,
-    request_id: str | None = None,
-) -> TextContent:
-    """Format an error response as TextContent.
-    格式化错误响应为 TextContent。
-
-    Args:
-        message: Error message
-        error_type: Type of error
-        error_code: Optional error code for programmatic handling
-
-    Returns:
-        TextContent with formatted error
-    """
-    error_dict: dict[str, Any] = {
-        "status": "error",
-        "error": {
-            "type": error_type,
-            "message": message,
-        },
-    }
-
-    if error_code:
-        error_dict["error"]["code"] = error_code
-    if request_id:
-        error_dict["error"]["request_id"] = request_id
-
-    return TextContent(type="text", text=json.dumps(error_dict, ensure_ascii=False))
-
-
-def format_success_response(
-    data: dict[str, Any],
-    message: str | None = None,
-) -> TextContent:
-    """Format a success response as TextContent.
-    格式化成功响应为 TextContent。
-
-    Args:
-        data: Response data
-        message: Optional success message
-
-    Returns:
-        TextContent with formatted success response
-    """
-    response_dict = {"status": "success", "data": data}
-
-    if message:
-        response_dict["message"] = message
-
-    return TextContent(type="text", text=json.dumps(response_dict, ensure_ascii=False))
-
-
 __all__ = [
     "MCPResponse",
-    "format_error_response",
-    "format_success_response",
 ]

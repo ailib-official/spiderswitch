@@ -134,23 +134,9 @@ class InvalidModelError(ModelSwitcherError):
     pass
 
 
-class ProviderNotAvailableError(ModelSwitcherError):
-    """Provider is not available or not configured.
-    Provider 不可用或未配置。"""
-
-    pass
-
-
 class ApiKeyMissingError(ModelSwitcherError):
     """API key is missing for the provider.
     缺少 Provider 的 API 密钥。"""
-
-    pass
-
-
-class ConnectionError(ModelSwitcherError):
-    """Failed to connect to provider API.
-    无法连接到 Provider API。"""
 
     pass
 
@@ -167,8 +153,6 @@ __all__ = [
     "ModelSwitcherError",
     "ModelNotFoundError",
     "InvalidModelError",
-    "ProviderNotAvailableError",
     "ApiKeyMissingError",
-    "ConnectionError",
     "ValidationError",
 ]

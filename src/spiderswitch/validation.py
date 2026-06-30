@@ -269,23 +269,6 @@ class Validator:
 DEFAULT_VALIDATOR = Validator()
 
 
-def validate_or_raise(
-    *args: Any,
-    **kwargs: Any,
-) -> tuple[str, str | None, str | None]:
-    """Validate arguments using default strict validator.
-
-    Args:
-        model: Model ID
-        api_key: Optional API key
-        base_url: Optional base URL
-
-    Returns:
-        Tuple of validated arguments
-    """
-    return DEFAULT_VALIDATOR.validate_switch_arguments(*args, **kwargs)
-
-
 def get_provider_api_key_status(provider: str) -> dict[str, object]:
     """Get local API key status for a provider without exposing values."""
     expected_env_vars = list(PROVIDER_API_KEY_ENV.get(provider, ()))
@@ -327,5 +310,4 @@ __all__ = [
     "PROVIDERS_MAY_REQUIRE_PROXY",
     "get_provider_api_key_status",
     "get_provider_proxy_status",
-    "validate_or_raise",
 ]
