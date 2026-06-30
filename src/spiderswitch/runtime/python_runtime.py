@@ -41,6 +41,39 @@ UNSUPPORTED_PROXY_SCHEMES = ("socks4://", "socks4a://")
 USER_AGENT = f"spiderswitch/{__version__}"
 
 
+def _ai_lib_infrastructure_signals() -> dict[str, object]:
+    """Report ai-lib ecosystem capabilities actually available in this process.
+
+    Reuses ai-lib's own feature-detection and protocol metadata so the runtime
+    profile reflects real installed infrastructure instead of a static guess.
+    复用 ai-lib 生态的特性检测与协议版本信息，让运行时画像反映真实可用能力。
+    """
+    signals: dict[str, object] = {}
+    try:
+        import ai_lib_python as ai
+
+        signals["ai_lib_version"] = getattr(ai, "__version__", None)
+        signals["optional_features"] = {
+            "vision": bool(getattr(ai, "HAS_VISION", False)),
+            "audio": bool(getattr(ai, "HAS_AUDIO", False)),
+            "telemetry": bool(getattr(ai, "HAS_TELEMETRY", False)),
+            "tokenizer": bool(getattr(ai, "HAS_TOKENIZER", False)),
+            "keyring": bool(getattr(ai, "HAS_KEYRING", False)),
+            "watchdog": bool(getattr(ai, "HAS_WATCHDOG", False)),
+        }
+    except Exception:  # pragma: no cover - defensive, ai-lib is a hard dependency
+        return signals
+
+    try:
+        from ai_lib_python.protocol import SUPPORTED_PROTOCOL_VERSIONS
+
+        signals["supported_protocol_versions"] = list(SUPPORTED_PROTOCOL_VERSIONS)
+    except Exception:  # pragma: no cover - older ai-lib without this export
+        pass
+
+    return signals
+
+
 class PythonRuntime(Runtime):
     """ai-lib-python runtime implementation.
 
@@ -549,6 +582,7 @@ class PythonRuntime(Runtime):
                 "switch_lock": "asyncio_lock",
                 "supports_hot_switch": True,
                 "supports_multi_runtime_registry": True,
+                "ai_lib": _ai_lib_infrastructure_signals(),
             },
             notes=(
                 "Spiderswitch only exposes routing capability signals. "
