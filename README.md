@@ -310,6 +310,42 @@ Typical setup flow:
 3. Call `switch_model`.
 4. Verify with `get_status`.
 
+### ai-lib Error Classification (retry/fallback signals)
+
+When `switch_model` fails because of an upstream ai-lib-python error, the response
+reuses the ai-lib ecosystem error contract and includes `error.details.ai_lib_error`
+so agents can react programmatically:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "type": "ModelSwitcherError",
+    "code": "SPIDER-SWITCH-FAILED",
+    "details": {
+      "provider": "openai",
+      "ai_lib_error": {
+        "source": "ai-lib-python",
+        "family": "RemoteError",
+        "error_class": "rate_limited",
+        "status_code": 429,
+        "retryable": true,
+        "fallbackable": true,
+        "retry_after": 2.0,
+        "request_id": "req-1"
+      }
+    }
+  }
+}
+```
+
+- `retryable`: safe to retry the same model after `retry_after` seconds.
+- `fallbackable`: appropriate to switch to an alternative model/provider.
+
+The runtime profile (`runtime_profile.operational_metrics.ai_lib`) likewise reports the
+live ai-lib version, optional feature flags, and supported ai-protocol versions detected
+in the running process, giving upper-layer routers an accurate capability picture.
+
 ## Connection Coordination with Agent Runtime
 
 This MCP server manages model client lifecycle internally. To avoid conflicts with an agent's own connection manager:

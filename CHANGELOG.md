@@ -6,6 +6,16 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- **ai-lib ecosystem error classification**: `switch_model` failures now surface
+  standardized routing signals (`error_class`, `retryable`, `fallbackable`,
+  `retry_after`, `status_code`, `request_id`) extracted from `ai_lib_python.errors`
+  under `error.details.ai_lib_error`, so agents can programmatically retry or fall back.
+- **Infrastructure-aware runtime profile**: `runtime_profile.operational_metrics.ai_lib`
+  now reports the live ai-lib version, optional feature flags (vision/audio/telemetry/
+  tokenizer/keyring/watchdog) via ai-lib's own feature detection, and the supported
+  ai-protocol versions, instead of a static guess.
+
 ### Fixed
 - Corrected official ai-protocol dist sync URLs from the legacy `hiddenpath` org to
   `ailib-official`, matching the rest of the project after the org migration.
