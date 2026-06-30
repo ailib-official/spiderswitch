@@ -18,6 +18,8 @@ This package provides:
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 # Lazy import to avoid loading mcp dependency on package import
 # This allows the package to be imported in tests without mcp installed
 
@@ -29,6 +31,11 @@ def main() -> None:
     _ = cli_main()
 
 
-__all__ = ["main"]
+try:
+    # Single source of truth: read from installed package metadata (pyproject).
+    __version__ = version("spiderswitch")
+except PackageNotFoundError:  # pragma: no cover - editable/source fallback
+    __version__ = "0.5.0"
 
-__version__ = "0.4.0"
+
+__all__ = ["main", "__version__"]

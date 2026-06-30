@@ -20,6 +20,7 @@ from urllib.request import Request, urlopen
 import yaml
 from ai_lib_python import AiClient
 
+from .. import __version__
 from ..errors import (
     InvalidModelError,
     ModelNotFoundError,
@@ -31,12 +32,13 @@ from .base import ModelCapabilities, ModelInfo, Runtime, RuntimeProfile
 logger = logging.getLogger(__name__)
 
 OFFICIAL_DIST_RAW_BASE_URL = (
-    "https://raw.githubusercontent.com/hiddenpath/ai-protocol/main/dist/v1"
+    "https://raw.githubusercontent.com/ailib-official/ai-protocol/main/dist/v1"
 )
 OFFICIAL_DIST_API_BASE_URL = (
-    "https://api.github.com/repos/hiddenpath/ai-protocol/contents/dist/v1"
+    "https://api.github.com/repos/ailib-official/ai-protocol/contents/dist/v1"
 )
 UNSUPPORTED_PROXY_SCHEMES = ("socks4://", "socks4a://")
+USER_AGENT = f"spiderswitch/{__version__}"
 
 
 class PythonRuntime(Runtime):
@@ -133,14 +135,14 @@ class PythonRuntime(Runtime):
     def _download_file(url: str, target: Path) -> None:
         """Download a file to target path."""
         target.parent.mkdir(parents=True, exist_ok=True)
-        req = Request(url, headers={"User-Agent": "spiderswitch/0.4.0"})
+        req = Request(url, headers={"User-Agent": USER_AGENT})
         with urlopen(req, timeout=10) as resp:
             content = resp.read()
         target.write_bytes(content)
 
     def _download_dir_from_github_api(self, api_url: str, target_dir: Path) -> None:
         """Download all json files from a GitHub API directory listing."""
-        req = Request(api_url, headers={"User-Agent": "spiderswitch/0.4.0"})
+        req = Request(api_url, headers={"User-Agent": USER_AGENT})
         with urlopen(req, timeout=10) as resp:
             payload = json.loads(resp.read().decode("utf-8"))
 
