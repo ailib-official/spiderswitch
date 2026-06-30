@@ -143,9 +143,8 @@ class PolicyEngine:
             model_tier = self._classify_tier(record, cost_p33, cost_p66)
             if tier == TierPreference.ECONOMY and model_tier == "premium":
                 continue
-            if tier == TierPreference.PREMIUM and model_tier == "economy":
-                if hint not in (TaskHint.CHEAP,):
-                    pass  # still allow but deprioritize via score
+            # PREMIUM preference keeps economy-tier models eligible but the scorer
+            # deprioritizes them, so no explicit filtering is required here.
 
             score, reasons = self._score(record, hint, tier, model_tier)
             scored.append(
@@ -164,7 +163,15 @@ class PolicyEngine:
         if not scored:
             raise ValueError("No models match tier preference; try tier=balanced.")
 
-        scored.sort(key=lambda c: c.score, reverse=True)
+        # Deterministic ranking: higher score first, then cheaper input cost as a
+        # stable tie-breaker so identical-score candidates resolve predictably.
+        scored.sort(
+            key=lambda c: (
+                -c.score,
+                c.input_per_1m if c.input_per_1m is not None else float("inf"),
+                c.model_id,
+            )
+        )
         selected = scored[0]
         return Recommendation(
             selected=selected,
@@ -229,6 +236,16 @@ class PolicyEngine:
 
         if record.input_per_token is not None:
             score += 0.05
+
+        # Reward larger context windows for context-hungry tasks (guarded for None
+        # so models without published context windows are unaffected).
+        if hint in (TaskHint.CODE, TaskHint.REASONING, TaskHint.QUALITY) and record.context_window:
+            if record.context_window >= 200_000:
+                score += 0.1
+                reasons.append("large context window (>=200k)")
+            elif record.context_window >= 100_000:
+                score += 0.05
+                reasons.append("large context window (>=100k)")
 
         if not reasons:
             reasons.append("default ranking")

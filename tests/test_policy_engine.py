@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from spiderswitch.policy.engine import PolicyEngine, TaskHint, TierPreference
+from spiderswitch.policy.engine import PolicyEngine
 from spiderswitch.policy.loader import ModelCatalog, ModelRecord
 
 
@@ -80,6 +80,49 @@ def test_prefer_single_provider(monkeypatch: pytest.MonkeyPatch, sample_catalog:
         prefer_provider="openai",
     )
     assert rec.selected.provider == "openai"
+
+
+def test_context_window_boosts_reasoning_selection(monkeypatch: pytest.MonkeyPatch) -> None:
+    """For reasoning tasks, a larger context window should break otherwise-equal ties."""
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    catalog = ModelCatalog(
+        models={
+            "openai/small-ctx": ModelRecord(
+                id="openai/small-ctx",
+                provider="openai",
+                display_name="Small Context",
+                capabilities=["chat", "tools", "reasoning"],
+                tags=["reasoning"],
+                input_per_token=0.000005,
+                output_per_token=0.000015,
+                context_window=8_000,
+            ),
+            "openai/large-ctx": ModelRecord(
+                id="openai/large-ctx",
+                provider="openai",
+                display_name="Large Context",
+                capabilities=["chat", "tools", "reasoning"],
+                tags=["reasoning"],
+                input_per_token=0.000005,
+                output_per_token=0.000015,
+                context_window=200_000,
+            ),
+        }
+    )
+    engine = PolicyEngine(catalog)
+    rec = engine.recommend(task_hint="reasoning", tier_preference="premium")
+    assert rec.selected.model_id == "openai/large-ctx"
+
+
+def test_ranking_is_deterministic(monkeypatch: pytest.MonkeyPatch, sample_catalog: ModelCatalog) -> None:
+    """Repeated recommendations must yield the same ordering."""
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    engine = PolicyEngine(sample_catalog)
+    first = engine.recommend(task_hint="chat", tier_preference="balanced")
+    second = engine.recommend(task_hint="chat", tier_preference="balanced")
+    assert first.selected.model_id == second.selected.model_id
+    assert [c.model_id for c in first.alternatives] == [c.model_id for c in second.alternatives]
 
 
 @pytest.mark.skipif(
