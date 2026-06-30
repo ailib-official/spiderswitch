@@ -297,6 +297,45 @@ Explicitly reset spiderswitch state and runtime client.
 }
 ```
 
+## Prompt Injection (Agent Guidance)
+
+spiderswitch ships built-in guidance so agents know *when* and *how* to switch models,
+using two MCP-native mechanisms:
+
+1. **Server instructions** — passed via the MCP `Server(instructions=...)` field and
+   surfaced by most clients during initialization, so the operating policy is injected
+   into the agent's system context automatically (always-on).
+2. **MCP Prompts** — reusable, parameterized templates the client/user can attach on
+   demand. Exposed via the standard `prompts/list` and `prompts/get` methods.
+
+Available prompts:
+
+| Prompt | Arguments | Purpose |
+|--------|-----------|---------|
+| `spiderswitch_guide` | _(none)_ | Inject a system-level guide making the agent spiderswitch-aware. |
+| `route_task` | `task` (required), `task_hint`, `tier` | Instruct the agent to `auto_switch` to the best model for a concrete task before answering. |
+
+Example (pseudo-MCP client):
+
+```python
+# Discover prompts
+prompts = await mcp_client.list_prompts()
+
+# Inject the guide once per session
+guide = await mcp_client.get_prompt("spiderswitch_guide")
+system_messages.extend(guide.messages)
+
+# Or route a specific task to the best model
+routed = await mcp_client.get_prompt(
+    "route_task",
+    {"task": "Refactor this module and add tests", "task_hint": "code", "tier": "premium"},
+)
+# routed.messages instructs the agent to call auto_switch(task_hint="code", tier="premium")
+```
+
+If `task_hint`/`tier` are omitted (or invalid), `route_task` instructs the agent to infer
+the best hint from the allowed set: `chat, code, reasoning, vision, summarize, cheap, quality`.
+
 ## API Key Guidance and Troubleshooting
 
 When `switch_model` fails due to missing credentials, the response includes:

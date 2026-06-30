@@ -7,6 +7,11 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 ## [Unreleased]
 
 ### Added
+- **Prompt-injection layer**: the MCP server now advertises `instructions` (auto-injected
+  operating policy that tells agents when/how to switch models) and two MCP **prompts** —
+  `spiderswitch_guide` (system-level guidance) and `route_task` (route a concrete task to
+  the best model via `auto_switch`). Exposed through standard `prompts/list` and
+  `prompts/get`.
 - **ai-lib ecosystem error classification**: `switch_model` failures now surface
   standardized routing signals (`error_class`, `retryable`, `fallbackable`,
   `retry_after`, `status_code`, `request_id`) extracted from `ai_lib_python.errors`
