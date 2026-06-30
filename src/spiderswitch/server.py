@@ -23,8 +23,8 @@ from .runtime import PythonRuntime
 from .runtime.base import Runtime
 from .runtime.registry import RuntimeRegistry, RuntimeResolver
 from .state import ModelStateManager
-from .tools import auto_switch, list as list_tool
-from .tools import recommend, reset, status, switch
+from .tools import auto_switch, recommend, reset, status, switch
+from .tools import list as list_tool
 
 # Configure logging
 logging.basicConfig(
@@ -86,6 +86,20 @@ def create_app(
     resolver = RuntimeResolver(registry)
     _state = state_manager or ModelStateManager()
 
+    def _resolve_target_runtime(args: dict[str, object]) -> Runtime:
+        """Resolve the runtime instance for a tool call.
+
+        Resolution order is fixed: request runtime_id -> active state runtime_id
+        -> default runtime. Selection policy stays in upper-layer applications.
+        解析目标运行时，顺序固定：请求 -> 活动状态 -> 默认。
+        """
+        resolution = resolver.resolve(
+            requested_runtime_id=_runtime_id_from_args(args),
+            active_runtime_id=_state.get_state().runtime_id,
+        )
+        _, target_runtime = registry.get_runtime(resolution.runtime_id)
+        return target_runtime
+
     app = Server("spiderswitch")
 
     @app.list_tools()  # type: ignore[no-untyped-call,untyped-decorator]
@@ -122,55 +136,30 @@ def create_app(
         request_id = str(uuid4())
         try:
             if name == "switch_model":
-                requested_runtime_id = _runtime_id_from_args(args)
-                resolution = resolver.resolve(
-                    requested_runtime_id=requested_runtime_id,
-                    active_runtime_id=_state.get_state().runtime_id,
-                )
-                _, target_runtime = registry.get_runtime(resolution.runtime_id)
-                return await switch.handle(target_runtime, _state, args)
+                return await switch.handle(_resolve_target_runtime(args), _state, args)
             elif name == "list_models":
-                requested_runtime_id = _runtime_id_from_args(args)
-                resolution = resolver.resolve(
-                    requested_runtime_id=requested_runtime_id,
-                    active_runtime_id=_state.get_state().runtime_id,
-                )
-                _, target_runtime = registry.get_runtime(resolution.runtime_id)
-                return await list_tool.handle(target_runtime, args)
+                return await list_tool.handle(_resolve_target_runtime(args), args)
             elif name == "get_status":
-                requested_runtime_id = _runtime_id_from_args(args)
-                resolution = resolver.resolve(
-                    requested_runtime_id=requested_runtime_id,
-                    active_runtime_id=_state.get_state().runtime_id,
-                )
-                _, target_runtime = registry.get_runtime(resolution.runtime_id)
-                return await status.handle(_state, target_runtime)
+                return await status.handle(_state, _resolve_target_runtime(args))
             elif name == "exit_switcher":
-                requested_runtime_id = _runtime_id_from_args(args)
                 scope_raw = args.get("scope")
-                scope = scope_raw if isinstance(scope_raw, str) and scope_raw in {"all", "runtime"} else "all"
+                scope = (
+                    scope_raw
+                    if isinstance(scope_raw, str) and scope_raw in {"all", "runtime"}
+                    else "all"
+                )
                 resolution = resolver.resolve(
-                    requested_runtime_id=requested_runtime_id,
+                    requested_runtime_id=_runtime_id_from_args(args),
                     active_runtime_id=_state.get_state().runtime_id,
                 )
                 _, target_runtime = registry.get_runtime(resolution.runtime_id)
-                return await reset.handle(target_runtime, _state, runtime_id=resolution.runtime_id, scope=scope)
+                return await reset.handle(
+                    target_runtime, _state, runtime_id=resolution.runtime_id, scope=scope
+                )
             elif name == "recommend_model":
-                requested_runtime_id = _runtime_id_from_args(args)
-                resolution = resolver.resolve(
-                    requested_runtime_id=requested_runtime_id,
-                    active_runtime_id=_state.get_state().runtime_id,
-                )
-                _, target_runtime = registry.get_runtime(resolution.runtime_id)
-                return await recommend.handle(target_runtime, args)
+                return await recommend.handle(_resolve_target_runtime(args), args)
             elif name == "auto_switch":
-                requested_runtime_id = _runtime_id_from_args(args)
-                resolution = resolver.resolve(
-                    requested_runtime_id=requested_runtime_id,
-                    active_runtime_id=_state.get_state().runtime_id,
-                )
-                _, target_runtime = registry.get_runtime(resolution.runtime_id)
-                return await auto_switch.handle(target_runtime, _state, args)
+                return await auto_switch.handle(_resolve_target_runtime(args), _state, args)
             else:
                 logger.warning(f"Unknown tool requested: {name}")
                 response = MCPResponse.error(
