@@ -6,6 +6,20 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Fixed
+- Corrected official ai-protocol dist sync URLs from the legacy `hiddenpath` org to
+  `ailib-official`, matching the rest of the project after the org migration.
+- Single-sourced the package version from installed metadata (`importlib.metadata`)
+  so `spiderswitch.__version__` and the HTTP `User-Agent` always track `pyproject.toml`
+  (previously hardcoded `0.4.0`).
+
+### Changed
+- Refactored the MCP `call_tool` dispatcher to share a single runtime-resolution
+  helper, removing repeated boilerplate across all six tool branches.
+- Smart routing policy engine is now deterministic (stable score/cost/id tie-breaking)
+  and rewards large context windows for `code`/`reasoning`/`quality` tasks; removed a
+  dead no-op branch in tier handling.
+
 ## [0.5.0] - 2026-06-30
 
 ### Added
