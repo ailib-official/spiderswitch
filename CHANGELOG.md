@@ -28,9 +28,26 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
   so `spiderswitch.__version__` and the HTTP `User-Agent` always track `pyproject.toml`
   (previously hardcoded `0.4.0`).
 
+### Removed
+- Deleted dead/duplicate code: `response.format_error_response` /
+  `format_success_response` (superseded by `MCPResponse`), `validation.validate_or_raise`,
+  and the unused `ProviderNotAvailableError` / `ConnectionError` exceptions (the latter
+  also shadowed the builtin `ConnectionError`).
+- Removed redundant one-off release docs (`MODIFICATION_SUMMARY.md`,
+  `DEPLOYMENT_VERIFICATION.md`); `CHANGELOG.md` is the single source of release history.
+
 ### Changed
 - Refactored the MCP `call_tool` dispatcher to share a single runtime-resolution
   helper, removing repeated boilerplate across all six tool branches.
+- Unified public/runtime model-id resolution in a single `model_ids` module shared by
+  the runtime inventory and the policy catalog, so `recommend_model` can no longer
+  surface an id that `switch_model` cannot resolve.
+- Removed version contradictions: the plugin manifest now tracks `0.5.0` with the
+  `ailib-official` id, `scripts/verify.sh` reads the version from `pyproject.toml`, and
+  offline-install examples use a version-agnostic wheel placeholder. Added a test that
+  guards manifest/package version drift.
+- Documentation now matches the implementation: README documents all six tools and a
+  corrected architecture tree.
 - Smart routing policy engine is now deterministic (stable score/cost/id tie-breaking)
   and rewards large context windows for `code`/`reasoning`/`quality` tasks; removed a
   dead no-op branch in tier handling.
