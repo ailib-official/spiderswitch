@@ -16,8 +16,9 @@ from uuid import uuid4
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import TextContent, Tool
+from mcp.types import GetPromptResult, Prompt, TextContent, Tool
 
+from . import prompts as prompt_catalog
 from .response import MCPResponse
 from .runtime import PythonRuntime
 from .runtime.base import Runtime
@@ -100,7 +101,20 @@ def create_app(
         _, target_runtime = registry.get_runtime(resolution.runtime_id)
         return target_runtime
 
-    app = Server("spiderswitch")
+    app = Server("spiderswitch", instructions=prompt_catalog.SERVER_INSTRUCTIONS)
+
+    @app.list_prompts()  # type: ignore[no-untyped-call,untyped-decorator]
+    async def list_prompts() -> list[Prompt]:
+        """Expose injectable prompt templates that steer model switching."""
+        return prompt_catalog.list_prompts()
+
+    @app.get_prompt()  # type: ignore[no-untyped-call,untyped-decorator]
+    async def get_prompt(
+        name: str,
+        arguments: dict[str, str] | None,
+    ) -> GetPromptResult:
+        """Render a prompt template by name."""
+        return prompt_catalog.get_prompt(name, arguments)
 
     @app.list_tools()  # type: ignore[no-untyped-call,untyped-decorator]
     async def list_tools() -> list[Tool]:
