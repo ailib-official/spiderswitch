@@ -81,7 +81,7 @@ spiderswitch doctor --json
 可从本地 wheel 或本地源码目录安装：
 
 ```bash
-bash scripts/install_offline.sh /path/to/spiderswitch-0.4.0-py3-none-any.whl
+bash scripts/install_offline.sh /path/to/spiderswitch-<version>-py3-none-any.whl
 # 或
 bash scripts/install_offline.sh /path/to/spiderswitch-source
 ```

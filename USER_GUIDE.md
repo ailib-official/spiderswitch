@@ -51,7 +51,7 @@ pip install -e .
 Install from local wheel or local source directory:
 
 ```bash
-bash scripts/install_offline.sh /path/to/spiderswitch-0.4.0-py3-none-any.whl
+bash scripts/install_offline.sh /path/to/spiderswitch-<version>-py3-none-any.whl
 # or
 bash scripts/install_offline.sh /path/to/spiderswitch-source
 ```

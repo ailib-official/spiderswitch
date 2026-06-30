@@ -82,7 +82,7 @@ spiderswitch doctor --json
 Install from local wheel or local source directory:
 
 ```bash
-bash scripts/install_offline.sh /path/to/spiderswitch-0.4.0-py3-none-any.whl
+bash scripts/install_offline.sh /path/to/spiderswitch-<version>-py3-none-any.whl
 # or
 bash scripts/install_offline.sh /path/to/spiderswitch-source
 ```
@@ -297,6 +297,27 @@ Explicitly reset spiderswitch state and runtime client.
 }
 ```
 
+### 5. recommend_model
+
+Recommend the best model for the current task using local policy (BYOK, no upstream API call).
+
+**Parameters:**
+- `task_hint` (string, optional): `chat`, `code`, `reasoning`, `vision`, `summarize`, `cheap`, `quality` (default `chat`)
+- `tier` (string, optional): `economy`, `balanced`, `premium` (default `balanced`)
+- `required_capabilities` (array, optional): Extra required capabilities (e.g., `tools`, `vision`)
+- `prefer_provider` (string, optional): Restrict to a single provider
+- `runtime_id` (string, optional): Runtime target selected by upper-layer policy
+
+Returns the selected model, ranked alternatives, scoring reasons, and pricing — without switching.
+
+### 6. auto_switch
+
+Recommend and switch to the best model for the current task in one call (BYOK, local policy).
+
+**Parameters:** same routing inputs as `recommend_model`, plus `api_key`, `base_url` (optional, forwarded to the switch).
+
+Returns the switched model data with the embedded `recommendation` payload.
+
 ## Prompt Injection (Agent Guidance)
 
 spiderswitch ships built-in guidance so agents know *when* and *how* to switch models,
@@ -406,20 +427,30 @@ spiderswitch only executes routing actions with explicit runtime signals:
 
 ```
 spiderswitch/
-├── src/
-│   ├── server.py           # MCP server main entry point
-│   ├── tools/              # MCP tool implementations
-│   │   ├── switch.py       # switch_model tool
-│   │   ├── list.py         # list_models tool
-│   │   ├── status.py       # get_status tool
-│   │   └── reset.py        # exit_switcher tool
-│   ├── runtime/            # Runtime abstraction layer
-│   │   ├── base.py         # Base runtime interface
-│   │   ├── python_runtime.py  # ai-lib-python implementation
-│   │   └── loader.py       # ProtocolLoader wrapper
-│   └── state.py            # State management
-├── tests/                  # Test suite
-└── pyproject.toml          # Project configuration
+├── src/spiderswitch/
+│   ├── server.py             # MCP server (tools + prompts + instructions)
+│   ├── prompts.py            # Injectable agent guidance (instructions + MCP prompts)
+│   ├── model_ids.py          # Shared model-id resolution (single source of truth)
+│   ├── tools/                # MCP tool implementations
+│   │   ├── switch.py         # switch_model tool
+│   │   ├── list.py           # list_models tool
+│   │   ├── status.py         # get_status tool
+│   │   ├── reset.py          # exit_switcher tool
+│   │   ├── recommend.py      # recommend_model tool
+│   │   └── auto_switch.py    # auto_switch tool
+│   ├── runtime/              # Runtime abstraction layer
+│   │   ├── base.py           # Base runtime interface
+│   │   ├── python_runtime.py # ai-lib-python implementation
+│   │   └── registry.py       # Runtime registry/resolver
+│   ├── policy/               # Local smart-routing policy engine
+│   │   ├── engine.py         # Scoring/ranking
+│   │   └── loader.py         # ai-protocol catalog loader
+│   ├── validation.py         # Input validation + provider readiness
+│   ├── response.py           # Unified MCP response format
+│   ├── errors.py             # Error taxonomy + ai-lib error bridge
+│   └── state.py              # State management
+├── tests/                    # Test suite
+└── pyproject.toml            # Project configuration
 ```
 
 ## Development

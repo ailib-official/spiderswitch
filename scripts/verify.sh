@@ -4,13 +4,17 @@
 
 set -e
 
-echo "========================================="
-echo "Verifying spiderswitch v0.4.0"
-echo "========================================="
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 AI_LIB_PATH="${AI_LIB_PATH:-}"
+
+# Single source of truth: read the version from pyproject.toml.
+VERSION="$(grep -E '^version[[:space:]]*=' "$PROJECT_DIR/pyproject.toml" | head -1 | sed -E 's/.*"([^"]+)".*/\1/')"
+VERSION="${VERSION:-unknown}"
+
+echo "========================================="
+echo "Verifying spiderswitch v$VERSION"
+echo "========================================="
 
 # Check project structure
 echo ""
@@ -109,7 +113,7 @@ echo "Verification Complete!"
 echo "========================================="
 echo ""
 echo "Project: spiderswitch"
-echo "Version: 0.4.0"
+echo "Version: $VERSION"
 echo "Location: $PROJECT_DIR"
 echo ""
 echo "Next steps:"
