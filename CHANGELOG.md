@@ -6,8 +6,21 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-06-30
+
 ### Added
-- Added `runtime_profile` signal in `switch_model`, `list_models`, and `get_status` responses to expose runtime routing capabilities to upper-layer policy engines.
+- **Smart routing MCP tools**: `recommend_model` (local policy, BYOK) and `auto_switch` (recommend + switch).
+- Policy engine (`spiderswitch.policy`) scoring models from ai-protocol pricing, tags, and capabilities.
+- Pro pack under `packaging/spiderswitch-pro/` (Cursor MCP templates, routing YAML, install script).
+- E2E tests (`tests/test_e2e_smart_routing.py`) and guide (`docs/E2E_SMART_ROUTING.md`).
+
+### Changed
+- Version bump to 0.5.0; MCP server exposes 6 tools (was 4).
+- `PythonRuntime.resolve_protocol_base()` public API for policy catalog loading.
+
+## [0.4.2] - prior
+
+### Added
 - Added runtime-level profile API in runtime abstraction (`describe_runtime_profile`) and Python runtime implementation.
 - Added runtime registry/resolver execution layer for runtime-aware routing (`RuntimeRegistry`, `RuntimeResolver`).
 - Added runtime-scoped state signals (`runtime_id`, `runtime_epoch`, `runtime_epochs`) and scoped reset semantics (`scope=runtime|all`).

@@ -1,0 +1,24 @@
+# 质量优先 — SpiderSwitch Pro
+
+default_model: openai/gpt-4o
+
+rules:
+  - when: task == "code"
+    model: openai/gpt-4o
+    reason: 代码质量
+
+  - when: task == "reasoning"
+    model: openai/gpt-4o
+    reason: 复杂推理
+
+  - when: task == "cheap"
+    model: openai/gpt-4o-mini
+    reason: 降档省钱
+
+  - when: task == "default"
+    model: openai/gpt-4o-mini
+    reason: 日常均衡
+
+fallback:
+  model: deepseek/deepseek-chat
+  on: [rate_limit, provider_down]

@@ -23,8 +23,8 @@ from .runtime import PythonRuntime
 from .runtime.base import Runtime
 from .runtime.registry import RuntimeRegistry, RuntimeResolver
 from .state import ModelStateManager
-from .tools import list as list_tool
-from .tools import reset, status, switch
+from .tools import auto_switch, list as list_tool
+from .tools import recommend, reset, status, switch
 
 # Configure logging
 logging.basicConfig(
@@ -100,6 +100,8 @@ def create_app(
             list_tool.tool_schema(),
             status.tool_schema(),
             reset.tool_schema(),
+            recommend.tool_schema(),
+            auto_switch.tool_schema(),
         ]
 
     @app.call_tool()  # type: ignore[untyped-decorator]
@@ -153,6 +155,22 @@ def create_app(
                 )
                 _, target_runtime = registry.get_runtime(resolution.runtime_id)
                 return await reset.handle(target_runtime, _state, runtime_id=resolution.runtime_id, scope=scope)
+            elif name == "recommend_model":
+                requested_runtime_id = _runtime_id_from_args(args)
+                resolution = resolver.resolve(
+                    requested_runtime_id=requested_runtime_id,
+                    active_runtime_id=_state.get_state().runtime_id,
+                )
+                _, target_runtime = registry.get_runtime(resolution.runtime_id)
+                return await recommend.handle(target_runtime, args)
+            elif name == "auto_switch":
+                requested_runtime_id = _runtime_id_from_args(args)
+                resolution = resolver.resolve(
+                    requested_runtime_id=requested_runtime_id,
+                    active_runtime_id=_state.get_state().runtime_id,
+                )
+                _, target_runtime = registry.get_runtime(resolution.runtime_id)
+                return await auto_switch.handle(target_runtime, _state, args)
             else:
                 logger.warning(f"Unknown tool requested: {name}")
                 response = MCPResponse.error(

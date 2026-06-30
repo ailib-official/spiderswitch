@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "spiderswitch": {
+      "command": "spiderswitch",
+      "args": ["serve"],
+      "env": {
+        "AI_PROTOCOL_PATH": "${HOME}/.spiderswitch/ai-protocol",
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "DEEPSEEK_API_KEY": "${DEEPSEEK_API_KEY}",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    }
+  }
+}

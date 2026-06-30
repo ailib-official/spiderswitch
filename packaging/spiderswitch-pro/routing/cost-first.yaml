@@ -1,0 +1,25 @@
+# 成本优先 — SpiderSwitch Pro 切换策略
+# 100% BYOK；不调用平台 API
+
+default_model: deepseek/deepseek-chat
+
+rules:
+  - when: task == "code_review"
+    model: openai/gpt-4o-mini
+    reason: 工具调用稳定
+
+  - when: task == "long_context"
+    model: google/gemini-2.0-flash
+    reason: 大上下文 + 低价
+
+  - when: task == "reasoning"
+    model: deepseek/deepseek-reasoner
+    reason: 推理性价比
+
+  - when: task == "default"
+    model: deepseek/deepseek-chat
+    reason: 通用最低成本
+
+fallback:
+  model: openai/gpt-4o-mini
+  on: [rate_limit, provider_down]

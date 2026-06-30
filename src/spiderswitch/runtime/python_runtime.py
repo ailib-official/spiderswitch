@@ -74,6 +74,10 @@ class PythonRuntime(Runtime):
         self._switch_lock = asyncio.Lock()
         self._is_initialized = False
 
+    def resolve_protocol_base(self) -> Path | None:
+        """Return ai-protocol root directory if discoverable."""
+        return self._resolve_protocol_base()
+
     def _resolve_protocol_base(self) -> Path | None:
         """Resolve ai-protocol base directory."""
         if self._ai_protocol_path and self._ai_protocol_path.exists():
