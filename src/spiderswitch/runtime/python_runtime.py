@@ -26,6 +26,7 @@ from ..errors import (
     ModelNotFoundError,
     ModelSwitcherError,
 )
+from ..model_ids import resolve_public_model_name, resolve_runtime_model_id
 from ..validation import DEFAULT_VALIDATOR, PROXY_ENV_VARS, get_provider_proxy_status
 from .base import ModelCapabilities, ModelInfo, Runtime, RuntimeProfile
 
@@ -212,33 +213,6 @@ class PythonRuntime(Runtime):
         )
 
     @staticmethod
-    def _resolve_runtime_model_id(provider: str, raw_model_id: str) -> str:
-        """Resolve runtime-facing model id for AiClient.create()."""
-        if raw_model_id.startswith(f"{provider}/"):
-            return raw_model_id
-        return f"{provider}/{raw_model_id}"
-
-    @staticmethod
-    def _resolve_public_model_name(
-        provider: str,
-        model_name: str,
-        raw_model_id: str,
-    ) -> str:
-        """Resolve switchable public model name with one-level provider prefix."""
-        if model_name and "/" not in model_name:
-            return model_name
-
-        provider_prefix = f"{provider}/"
-        if raw_model_id.startswith(provider_prefix):
-            suffix = raw_model_id[len(provider_prefix) :]
-            if suffix and "/" not in suffix:
-                return suffix
-
-        # Fallback: use tail segment so the exposed ID remains switchable
-        # under the tool schema and validator pattern.
-        return raw_model_id.rsplit("/", 1)[-1]
-
-    @staticmethod
     def _detect_unsupported_proxy_env() -> dict[str, str]:
         """Detect unsupported proxy env vars without mutating process env."""
         unsupported: dict[str, str] = {}
@@ -283,8 +257,8 @@ class PythonRuntime(Runtime):
                 if not isinstance(raw_model_id, str) or not raw_model_id:
                     continue
 
-                runtime_model_id = self._resolve_runtime_model_id(provider, raw_model_id)
-                public_model_name = self._resolve_public_model_name(
+                runtime_model_id = resolve_runtime_model_id(provider, raw_model_id)
+                public_model_name = resolve_public_model_name(
                     provider=provider,
                     model_name=model_name,
                     raw_model_id=raw_model_id,

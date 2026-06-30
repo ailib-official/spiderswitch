@@ -12,6 +12,7 @@ from pathlib import Path
 import yaml
 
 from ..errors import ModelSwitcherError
+from ..model_ids import resolve_public_model_id
 
 
 @dataclass
@@ -83,13 +84,13 @@ class ModelCatalog:
                 if not isinstance(raw_model_id, str):
                     continue
 
-                public_name = raw_model_id
-                if provider in raw_model_id and "/" in raw_model_id:
-                    public_name = raw_model_id.rsplit("/", 1)[-1]
-                elif raw_model_id.startswith(f"{provider}-"):
-                    public_name = raw_model_id
-
-                full_id = f"{provider}/{public_name}"
+                # Use the shared resolver so policy ids match runtime ids exactly;
+                # otherwise recommend_model could surface an unswitchable id.
+                full_id = resolve_public_model_id(
+                    provider=provider,
+                    model_name=model_name if isinstance(model_name, str) else str(model_name),
+                    raw_model_id=raw_model_id,
+                )
                 status = model_data.get("status", "active")
                 if status not in (None, "active"):
                     continue
