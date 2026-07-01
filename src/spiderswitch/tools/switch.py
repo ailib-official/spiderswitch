@@ -14,6 +14,7 @@ import logging
 from mcp.types import TextContent, Tool
 
 from ..errors import InvalidModelError, ModelSwitcherError, describe_ai_lib_error
+from ..hints import hint_for_error
 from ..response import MCPResponse
 from ..runtime.base import Runtime
 from ..runtime.python_runtime import (
@@ -148,6 +149,12 @@ async def handle(
         ai_lib_diagnostics = describe_ai_lib_error(e)
         if ai_lib_diagnostics:
             details["ai_lib_error"] = ai_lib_diagnostics
+        else:
+            heuristic = hint_for_error(str(e))
+            if heuristic:
+                details["hint"] = heuristic.get("message")
+                if heuristic.get("fix_commands"):
+                    details["fix_commands"] = list(heuristic["fix_commands"])
         response = MCPResponse.error(
             message=str(e),
             error_type=e.__class__.__name__,
