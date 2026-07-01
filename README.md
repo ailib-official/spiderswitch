@@ -20,6 +20,8 @@ MCP (Model Context Protocol) server that enables agents to dynamically switch AI
 
 ## Quick Start
 
+> **Agents:** See [docs/AGENT_DEPLOY_GUIDE.md](docs/AGENT_DEPLOY_GUIDE.md) for a self-contained deploy playbook (install → protocol → MCP config → verify). Run `spiderswitch setup --client cursor` for one-shot setup.
+
 ### Installation
 
 ```bash

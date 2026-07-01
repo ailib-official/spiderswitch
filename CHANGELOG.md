@@ -6,6 +6,11 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- **Agent self-deploy guide** (`docs/AGENT_DEPLOY_GUIDE.md`): step-by-step playbook any agent can follow to install, configure, and verify spiderswitch as an MCP server (Cursor/OpenCode/Claude).
+- **Full agent-friendly CLI**: `version`, `info`, `setup` (one-shot deploy), `protocol setup|verify`, plus richer `doctor` output with `next_steps` and per-check `fix_commands`.
+- **Centralized heuristic hints** (`spiderswitch.hints`): structured error recovery catalog wired into `doctor`, CLI JSON outputs, and `switch_model` error details.
+
 ## [0.6.0] - 2026-06-30
 
 ### Added
