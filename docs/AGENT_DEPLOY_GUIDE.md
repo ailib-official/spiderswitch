@@ -113,6 +113,48 @@ spiderswitch protocol verify
 
 ---
 
+## 3b. Step 2b — Pre-build capability index {#step-2b-capability-index}
+
+The capability index is **pre-built offline** and **loaded directly** at MCP startup — no YAML re-parse on every server start.
+
+### Build once (required before first MCP session)
+
+```bash
+spiderswitch index build
+# Writes: ~/.spiderswitch/index/capability-index.json
+```
+
+### Verify (load-only, fast)
+
+```bash
+spiderswitch index
+# Expect: "ok": true, "loaded_from_disk": true
+```
+
+### Periodic refresh (recommended)
+
+When ai-protocol updates (new models, pricing, capabilities), rebuild the index:
+
+```bash
+# Manual
+spiderswitch index build
+
+# Cron example (daily at 03:00)
+0 3 * * * /usr/local/bin/spiderswitch index build >> ~/.spiderswitch/index-build.log 2>&1
+```
+
+**Environment variables:**
+
+| Variable | Purpose |
+|----------|---------|
+| `SPIDERSWITCH_INDEX_PATH` | Override index file location |
+| `SPIDERSWITCH_INDEX_MAX_AGE_SEC` | Warn when loaded index is older than N seconds |
+| `SPIDERSWITCH_INDEX_REBUILD_ON_START=1` | Fallback: rebuild from YAML if index missing (slow) |
+
+`spiderswitch setup` runs `index build` automatically after protocol setup.
+
+---
+
 ## 4. Step 3 — MCP client + API keys {#step-3-mcp-client}
 
 ### 3a. Generate MCP config
@@ -252,7 +294,7 @@ Injected automatically at MCP init — tells the agent when/how to call the tool
             └─ record_experience(model_id, quality=4, speed=5)  # 累积主观评分
 ```
 
-**Startup index:** 每次 MCP 服务器启动时，spiderswitch 会从 ai-protocol 加载全部模型并编制结构化能力索引（core / derived / tag / tier / task_hint 倒排表），同时合并本地主观体验数据（`~/.spiderswitch/experience/models.json`）。Agent 可通过 `query_index` 查询，或通过 `spiderswitch index`（CLI）查看摘要。
+**Startup index:** MCP 服务器启动时**直接加载**预构建索引（`~/.spiderswitch/index/capability-index.json`），仅刷新动态字段（BYOK 就绪状态、主观体验评分），**不会**每次重新解析 ai-protocol YAML。索引需事先通过 `spiderswitch index build` 构建（`setup` 会自动执行；也可用 cron 定期刷新）。Agent 可通过 `query_index` 查询，或通过 `spiderswitch index`（CLI，只读加载）查看摘要。
 
 ```
 1. auto_switch(task_hint="code", tier="balanced")
@@ -269,7 +311,8 @@ Injected automatically at MCP init — tells the agent when/how to call the tool
 |---------|---------|
 | `spiderswitch serve` | Run MCP stdio server (used by MCP clients) |
 | `spiderswitch version [--json]` | Print package version |
-| `spiderswitch index` | JSON: capability index + experience summary |
+| `spiderswitch index` | JSON: load pre-built index + experience summary (fast) |
+| `spiderswitch index build` | Pre-build and persist index from ai-protocol (cron-friendly) |
 | `spiderswitch info` | JSON: tools, prompts, config paths, runtime profile |
 | `spiderswitch setup [--client cursor\|opencode\|claude]` | One-shot deploy |
 | `spiderswitch init --client … --output …` | Write MCP config template |

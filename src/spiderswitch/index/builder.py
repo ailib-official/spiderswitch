@@ -35,6 +35,8 @@ class ModelIndexEntry:
     context_window: int | None
     subjective: SubjectiveRecord
     rank_score: float
+    input_per_token: float | None = None
+    blended_cost_per_1m: float = 9999.0
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -47,6 +49,8 @@ class ModelIndexEntry:
             "context_window": self.context_window,
             "subjective": self.subjective.to_dict(),
             "rank_score": round(self.rank_score, 4),
+            "input_per_token": self.input_per_token,
+            "blended_cost_per_1m": self.blended_cost_per_1m,
         }
 
 
@@ -183,15 +187,31 @@ def _classify_tier(record: ModelRecord, catalog: ModelCatalog) -> str:
     return "balanced"
 
 
-def compute_rank_score(record: ModelRecord, *, ready: bool, subjective: SubjectiveRecord) -> float:
+def compute_rank_score(
+    *,
+    ready: bool,
+    subjective: SubjectiveRecord,
+    input_per_token: float | None = None,
+    blended_cost_per_1m: float = 9999.0,
+) -> float:
     score = subjective.subjective_score
     if ready:
         score += 0.15
-    if record.input_per_token is not None:
+    if input_per_token is not None:
         score += 0.02
-    # Slight preference for lower cost as tie-breaker encoded in rank.
-    score += 0.05 / max(record.blended_cost_per_1m, 0.001)
+    score += 0.05 / max(blended_cost_per_1m, 0.001)
     return score
+
+
+def compute_rank_score_for_record(
+    record: ModelRecord, *, ready: bool, subjective: SubjectiveRecord
+) -> float:
+    return compute_rank_score(
+        ready=ready,
+        subjective=subjective,
+        input_per_token=record.input_per_token,
+        blended_cost_per_1m=record.blended_cost_per_1m,
+    )
 
 
 def _posting_add(bucket: dict[str, list[str]], key: str, model_id: str, rank: float) -> None:
@@ -235,7 +255,7 @@ def build_index(
         ready = bool(get_provider_api_key_status(record.provider).get("has_api_key"))
         subjective = experience.get(record.id)
         tier = _classify_tier(record, catalog)
-        rank = compute_rank_score(record, ready=ready, subjective=subjective)
+        rank = compute_rank_score_for_record(record, ready=ready, subjective=subjective)
 
         entry = ModelIndexEntry(
             model_id=record.id,
@@ -247,6 +267,8 @@ def build_index(
             context_window=record.context_window,
             subjective=subjective,
             rank_score=rank,
+            input_per_token=record.input_per_token,
+            blended_cost_per_1m=record.blended_cost_per_1m,
         )
         entries[record.id] = entry
 
@@ -282,10 +304,65 @@ def build_index(
     )
 
 
+def refresh_dynamic_fields(
+    index: ModelCapabilityIndex,
+    experience: ExperienceStore,
+) -> ModelCapabilityIndex:
+    """Refresh readiness, subjective scores, and posting order without YAML parse."""
+    by_core: dict[str, list[Any]] = {}
+    by_derived: dict[str, list[Any]] = {}
+    by_tag: dict[str, list[Any]] = {}
+    by_provider: dict[str, list[Any]] = {}
+    by_tier: dict[str, list[Any]] = {}
+    by_task: dict[str, list[Any]] = {}
+    ready_count = 0
+
+    for entry in index.entries.values():
+        ready = bool(get_provider_api_key_status(entry.provider).get("has_api_key"))
+        subjective = experience.get(entry.model_id)
+        rank = compute_rank_score(
+            ready=ready,
+            subjective=subjective,
+            input_per_token=entry.input_per_token,
+            blended_cost_per_1m=entry.blended_cost_per_1m,
+        )
+        entry.ready = ready
+        entry.subjective = subjective
+        entry.rank_score = rank
+        if ready:
+            ready_count += 1
+
+        for cap in entry.structured.core:
+            _posting_add(by_core, cap, entry.model_id, rank)
+        for facet in entry.structured.derived:
+            _posting_add(by_derived, facet, entry.model_id, rank)
+        for tag in entry.structured.tags:
+            _posting_add(by_tag, tag, entry.model_id, rank)
+        _posting_add(by_provider, entry.provider, entry.model_id, rank)
+        _posting_add(by_tier, entry.tier, entry.model_id, rank)
+
+        for hint in TaskHint:
+            req = TASK_REQUIRED_CAPS.get(hint, set())
+            if req and not req.issubset(entry.structured.core):
+                continue
+            _posting_add(by_task, hint.value, entry.model_id, rank)
+
+    index.ready_models = ready_count
+    index.by_core_capability = _finalize_buckets(by_core)
+    index.by_derived_facet = _finalize_buckets(by_derived)
+    index.by_tag = _finalize_buckets(by_tag)
+    index.by_provider = _finalize_buckets(by_provider)
+    index.by_tier = _finalize_buckets(by_tier)
+    index.by_task_hint = _finalize_buckets(by_task)
+    return index
+
+
 __all__ = [
     "INDEX_VERSION",
     "ModelCapabilityIndex",
     "ModelIndexEntry",
     "build_index",
     "compute_rank_score",
+    "compute_rank_score_for_record",
+    "refresh_dynamic_fields",
 ]

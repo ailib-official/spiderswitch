@@ -136,6 +136,15 @@ class StructuredCapabilities:
             "tags": sorted(self.tags),
         }
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> StructuredCapabilities:
+        return cls(
+            raw=set(data.get("raw") or []),
+            core=set(data.get("core") or []),
+            derived=set(data.get("derived") or []),
+            tags=set(data.get("tags") or []),
+        )
+
 
 __all__ = [
     "CORE_CAPABILITIES",

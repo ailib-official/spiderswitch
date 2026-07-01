@@ -75,6 +75,14 @@ DOCTOR_HINTS: dict[str, HintEntry] = {
         ],
         "docs": "docs/AGENT_DEPLOY_GUIDE.md#step-4-verify",
     },
+    "capability_index": {
+        "message": "Pre-built capability index not found. Build it once (or on a schedule) for fast MCP startup.",
+        "fix_commands": [
+            "spiderswitch index build",
+            "# Optional cron (daily): 0 3 * * * spiderswitch index build",
+        ],
+        "docs": "docs/AGENT_DEPLOY_GUIDE.md#step-2b-capability-index",
+    },
     "mcp_config": {
         "message": "MCP client config for spiderswitch was not found or is incomplete.",
         "fix_commands": [

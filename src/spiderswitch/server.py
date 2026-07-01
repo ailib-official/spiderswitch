@@ -92,7 +92,7 @@ def create_app(
     _index_service = index_service
     if _index_service is None and isinstance(_runtime, PythonRuntime):
         try:
-            _index_service = ModelIndexService.build_from_runtime(_runtime)
+            _index_service = ModelIndexService.load_from_runtime(_runtime)
             if _index_service is not None:
                 logger.info(
                     "Capability index ready: %d models indexed",

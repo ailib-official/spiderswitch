@@ -89,14 +89,13 @@ async def handle(
     task_raw = arguments.get("task_hint")
     task_hint = task_raw if isinstance(task_raw, str) else None
 
-    rec = index_service.experience.record_ratings(
+    rec = index_service.record_rating_outcome(
         model_id.strip(),
         quality=_optional_rating("quality"),
         speed=_optional_rating("speed"),
         value=_optional_rating("value"),
         task_hint=task_hint,
     )
-    index_service.refresh()
 
     response = MCPResponse.success(
         data={

@@ -92,6 +92,22 @@ class SubjectiveRecord:
             "last_updated": self.last_updated,
         }
 
+    @classmethod
+    def from_dict(cls, model_id: str, data: dict[str, Any]) -> SubjectiveRecord:
+        return cls(
+            model_id=model_id,
+            sample_count=int(data.get("sample_count", 0)),
+            switch_success=int(data.get("switch_success", 0)),
+            switch_failure=int(data.get("switch_failure", 0)),
+            latency_ms_sum=float(data.get("latency_ms_sum", 0.0)),
+            quality_ratings=list(data.get("quality_ratings") or []),
+            speed_ratings=list(data.get("speed_ratings") or []),
+            value_ratings=list(data.get("value_ratings") or []),
+            task_wins=dict(data.get("task_wins") or {}),
+            task_losses=dict(data.get("task_losses") or {}),
+            last_updated=data.get("last_updated"),
+        )
+
 
 class ExperienceStore:
     """Thread-safe local store for subjective model experience."""

@@ -26,6 +26,7 @@ from .hints import (
     hint_for_error,
 )
 from .index.service import ModelIndexService
+from .index.store import default_index_path, load_index
 from .runtime.python_runtime import PythonRuntime
 from .validation import PROVIDER_API_KEY_ENV, PROXY_ENV_VARS
 
@@ -106,6 +107,7 @@ def build_info_payload() -> dict[str, Any]:
             "version",
             "info",
             "index",
+            "index build",
             "setup",
             "init",
             "doctor",
@@ -230,6 +232,30 @@ def run_doctor_checks(*, include_runtime_probe: bool) -> dict[str, Any]:
     if include_runtime_probe:
         probe = asyncio.run(_runtime_probe(str(protocol_path) if protocol_path else None))
         checks.append(enrich_check({"name": "runtime_probe", **probe}))
+
+    index_path = default_index_path()
+    index_loaded = load_index(index_path, protocol_path=protocol_path) if protocol_path else None
+    checks.append(
+        enrich_check(
+            {
+                "name": "capability_index",
+                "ok": index_loaded is not None,
+                "detail": (
+                    f"loaded from {index_path}"
+                    if index_loaded is not None
+                    else f"not found at {index_path}"
+                ),
+                "index_path": str(index_path),
+                **(
+                    {
+                        "stale": index_loaded[1].fingerprint_stale or index_loaded[1].age_stale,
+                    }
+                    if index_loaded is not None
+                    else {}
+                ),
+            }
+        )
+    )
 
     healthy = all(bool(item.get("ok", False)) for item in checks)
     return {
@@ -369,11 +395,26 @@ def run_setup(*, client: ClientType, protocol_path: Path, skip_protocol: bool) -
     except Exception as exc:
         steps.append({"step": "init", "ok": False, "detail": str(exc)})
 
+    if protocol_path.exists() and (protocol_path / "v1" / "models").is_dir():
+        try:
+            index_service = ModelIndexService.build_from_protocol_path(protocol_path, persist=True)
+            steps.append(
+                {
+                    "step": "index_build",
+                    "ok": True,
+                    "index_path": str(index_service.index_path),
+                    "total_models": index_service.index.total_models,
+                    "hint": "Capability index pre-built for fast MCP startup",
+                }
+            )
+        except Exception as exc:
+            steps.append({"step": "index_build", "ok": False, "detail": str(exc)})
+
     doctor = run_doctor_checks(include_runtime_probe=True)
     steps.append({"step": "doctor", **doctor})
 
     setup_ok = all(
-        s.get("ok", False) for s in steps if s.get("step") in {"protocol", "init"}
+        s.get("ok", False) for s in steps if s.get("step") in {"protocol", "init", "index_build"}
     )
     setup_ok = setup_ok and doctor.get("healthy", False)
     return {
@@ -431,9 +472,20 @@ def main(argv: list[str] | None = None) -> int:
         help="Show MCP capabilities and deployment metadata (JSON, for agents)",
     )
 
-    subparsers.add_parser(
+    index_parser = subparsers.add_parser(
         "index",
-        help="Show startup-style capability index summary (JSON, for agents)",
+        help="Capability index: load summary or pre-build from ai-protocol",
+    )
+    index_sub = index_parser.add_subparsers(dest="index_command")
+    index_sub.add_parser(
+        "build",
+        help="Pre-build and persist index from ai-protocol (cron-friendly)",
+    )
+    index_build = index_sub.choices["build"]
+    index_build.add_argument(
+        "--protocol-path",
+        default=None,
+        help="Optional ai-protocol root (default: auto-detect)",
     )
 
     setup_parser = subparsers.add_parser(
@@ -527,18 +579,47 @@ def main(argv: list[str] | None = None) -> int:
 
     if command == "index":
         runtime = PythonRuntime()
+        if args.index_command == "build":
+            base: Path | None
+            if args.protocol_path:
+                base = Path(args.protocol_path).expanduser()
+            else:
+                base = runtime._resolve_protocol_base()  # noqa: SLF001
+            if base is None or not base.exists():
+                _print_json(
+                    {
+                        "ok": False,
+                        "hint": "ai-protocol not found",
+                        "fix_commands": ["spiderswitch protocol setup"],
+                    }
+                )
+                return 1
+            service = ModelIndexService.build_from_protocol_path(base, persist=True)
+            _print_json(
+                {
+                    "ok": True,
+                    "action": "built",
+                    "index_path": str(service.index_path),
+                    **service.info_payload(),
+                }
+            )
+            return 0
+
         base = runtime._resolve_protocol_base()  # noqa: SLF001
         if base is None:
             _print_json(
                 {
                     "ok": False,
-                    "hint": "ai-protocol not found",
+                    "hint": "ai-protocol not found (needed for staleness check)",
                     "fix_commands": ["spiderswitch protocol setup"],
                 }
             )
             return 1
-        service = ModelIndexService.build_from_protocol_path(base)
-        _print_json({"ok": True, **service.info_payload()})
+        loaded_service, load_status = ModelIndexService.load_or_build_for_cli(Path(base))
+        if loaded_service is None:
+            _print_json({"ok": False, **load_status})
+            return 1
+        _print_json({"ok": True, **load_status, **loaded_service.info_payload()})
         return 0
 
     if command == "setup":

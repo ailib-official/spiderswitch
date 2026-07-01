@@ -6,10 +6,29 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-01
+
 ### Added
-- **Startup capability index** (`spiderswitch.index`): on every MCP server start, builds
-  structured inverted indexes over all models — layers: `raw` / `core` / `derived` facets /
-  readiness (BYOK). Powers `query_index`, faster `recommend_model` filtering, and subjective ranking.
+- **Persisted capability index** (`~/.spiderswitch/index/capability-index.json`): pre-build
+  offline via `spiderswitch index build` (cron-friendly); MCP startup loads JSON directly
+  and only refreshes dynamic fields (BYOK readiness, subjective scores) — no YAML re-parse.
+- **Index staleness detection**: protocol content fingerprint + optional
+  `SPIDERSWITCH_INDEX_MAX_AGE_SEC` TTL; `SPIDERSWITCH_INDEX_REBUILD_ON_START=1` fallback.
+- **Doctor check** `capability_index` with fix hint to run `index build`.
+- **`spiderswitch setup`** now runs `index build` automatically after protocol setup.
+
+### Changed
+- MCP server startup uses `ModelIndexService.load_from_runtime()` (load-first) instead of
+  rebuilding from ai-protocol on every start.
+- `spiderswitch index` is load-only (fast); full rebuild moved to `spiderswitch index build`.
+- `record_experience` uses lightweight in-memory rank refresh instead of full index rebuild.
+
+## [0.6.0] - 2026-06-30
+
+### Added
+- **Startup capability index** (`spiderswitch.index`): structured inverted indexes over all
+  models — layers: `raw` / `core` / `derived` facets / readiness (BYOK). Powers
+  `query_index`, faster `recommend_model` filtering, and subjective ranking.
 - **Subjective experience store** (`~/.spiderswitch/experience/models.json`): accumulates
   switch success/failure, latency, and quality/speed/value ratings (1–5). MCP tool
   `record_experience`; `switch_model` auto-records outcomes.
@@ -18,8 +37,6 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 - **Agent self-deploy guide** (`docs/AGENT_DEPLOY_GUIDE.md`): step-by-step playbook any agent can follow to install, configure, and verify spiderswitch as an MCP server (Cursor/OpenCode/Claude).
 - **Full agent-friendly CLI**: `version`, `info`, `setup` (one-shot deploy), `protocol setup|verify`, plus richer `doctor` output with `next_steps` and per-check `fix_commands`.
 - **Centralized heuristic hints** (`spiderswitch.hints`): structured error recovery catalog wired into `doctor`, CLI JSON outputs, and `switch_model` error details.
-
-## [0.6.0] - 2026-06-30
 
 ### Added
 - **Prompt-injection layer**: the MCP server now advertises `instructions` (auto-injected
