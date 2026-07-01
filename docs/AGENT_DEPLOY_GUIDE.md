@@ -213,12 +213,14 @@ opencode mcp list
 
 ## 6. MCP capabilities (after deploy) {#capabilities}
 
-### Tools (6)
+### Tools (8)
 
 | Tool | When to call |
 |------|--------------|
 | `auto_switch` | **Default.** Pick + switch model for a task (`task_hint`, `tier`) |
-| `recommend_model` | Suggest a model without switching |
+| `recommend_model` | Suggest a model without switching (uses startup index) |
+| `query_index` | Query models by structured capabilities / facets / subjective score |
+| `record_experience` | Rate a model (quality/speed/value 1–5) to improve future ranking |
 | `switch_model` | Switch to an explicit `provider/model` id |
 | `list_models` | Discover models (`require_api_key: true` for BYOK-only list) |
 | `get_status` | Confirm active model; watch `connection_epoch` after switches |
@@ -238,6 +240,21 @@ Injected automatically at MCP init — tells the agent when/how to call the tool
 ### Typical agent workflow
 
 ```
+任务需要不同能力？
+    │
+    ├─ 按能力查询索引 → query_index(required_capabilities=["vision","tools"])
+    │
+    ├─ 智能推荐 → recommend_model(task_hint="code")  # 使用启动时索引加速
+    │
+    └─ 推荐并切换 → auto_switch(task_hint="code")
+            │
+            ├─ get_status() 确认
+            └─ record_experience(model_id, quality=4, speed=5)  # 累积主观评分
+```
+
+**Startup index:** 每次 MCP 服务器启动时，spiderswitch 会从 ai-protocol 加载全部模型并编制结构化能力索引（core / derived / tag / tier / task_hint 倒排表），同时合并本地主观体验数据（`~/.spiderswitch/experience/models.json`）。Agent 可通过 `query_index` 查询，或通过 `spiderswitch index`（CLI）查看摘要。
+
+```
 1. auto_switch(task_hint="code", tier="balanced")
 2. get_status()  → confirm is_configured == true
 3. [do work with the host LLM]
@@ -252,6 +269,7 @@ Injected automatically at MCP init — tells the agent when/how to call the tool
 |---------|---------|
 | `spiderswitch serve` | Run MCP stdio server (used by MCP clients) |
 | `spiderswitch version [--json]` | Print package version |
+| `spiderswitch index` | JSON: capability index + experience summary |
 | `spiderswitch info` | JSON: tools, prompts, config paths, runtime profile |
 | `spiderswitch setup [--client cursor\|opencode\|claude]` | One-shot deploy |
 | `spiderswitch init --client … --output …` | Write MCP config template |

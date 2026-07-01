@@ -25,6 +25,7 @@ from .hints import (
     enrich_check,
     hint_for_error,
 )
+from .index.service import ModelIndexService
 from .runtime.python_runtime import PythonRuntime
 from .validation import PROVIDER_API_KEY_ENV, PROXY_ENV_VARS
 
@@ -104,6 +105,7 @@ def build_info_payload() -> dict[str, Any]:
             "serve",
             "version",
             "info",
+            "index",
             "setup",
             "init",
             "doctor",
@@ -429,6 +431,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Show MCP capabilities and deployment metadata (JSON, for agents)",
     )
 
+    subparsers.add_parser(
+        "index",
+        help="Show startup-style capability index summary (JSON, for agents)",
+    )
+
     setup_parser = subparsers.add_parser(
         "setup",
         help="One-shot self-deploy: protocol + MCP config + doctor",
@@ -516,6 +523,22 @@ def main(argv: list[str] | None = None) -> int:
 
     if command == "info":
         _print_json(build_info_payload())
+        return 0
+
+    if command == "index":
+        runtime = PythonRuntime()
+        base = runtime._resolve_protocol_base()  # noqa: SLF001
+        if base is None:
+            _print_json(
+                {
+                    "ok": False,
+                    "hint": "ai-protocol not found",
+                    "fix_commands": ["spiderswitch protocol setup"],
+                }
+            )
+            return 1
+        service = ModelIndexService.build_from_protocol_path(base)
+        _print_json({"ok": True, **service.info_payload()})
         return 0
 
     if command == "setup":

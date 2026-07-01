@@ -34,6 +34,8 @@ SERVER_INSTRUCTIONS = (
     "- Use `recommend_model` first if you want a suggestion without switching.\n"
     "- Use `list_models` to discover available models, `switch_model` to switch to "
     "an explicit `provider/model`, and `get_status` to confirm the active model.\n"
+    "- Use `query_index` to look up models by structured capabilities and subjective scores.\n"
+    "- Use `record_experience` after using a model to accumulate quality/speed/value ratings.\n"
     "- Call `exit_switcher` to reset spiderswitch and hand control back to the "
     "client's built-in model selection.\n"
     "- After any switch, treat an increased `get_status.connection_epoch` as the "

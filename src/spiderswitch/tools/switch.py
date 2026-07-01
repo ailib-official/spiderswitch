@@ -15,6 +15,7 @@ from mcp.types import TextContent, Tool
 
 from ..errors import InvalidModelError, ModelSwitcherError, describe_ai_lib_error
 from ..hints import hint_for_error
+from ..index.service import ModelIndexService
 from ..response import MCPResponse
 from ..runtime.base import Runtime
 from ..runtime.python_runtime import (
@@ -83,6 +84,7 @@ async def handle(
     runtime: Runtime,
     state_manager: ModelStateManager,
     arguments: dict[str, object],
+    index_service: ModelIndexService | None = None,
 ) -> list[TextContent]:
     """Handle switch_model tool call.
 
@@ -96,6 +98,8 @@ async def handle(
     """
     try:
         model_id, api_key, base_url = extract_model_from_args(arguments)
+        task_hint_raw = arguments.get("task_hint")
+        task_hint = task_hint_raw if isinstance(task_hint_raw, str) else None
         logger.info(f"Switching to model: {model_id}")
 
         # Switch model via runtime
@@ -109,6 +113,13 @@ async def handle(
         runtime_profile = runtime.describe_runtime_profile()
         state_manager.update_from_model_info_with_runtime(model_info, runtime_id=runtime_profile.runtime_id)
         status_tool.invalidate_cache(state_manager)
+
+        if index_service is not None:
+            index_service.record_switch_outcome(
+                model_info.id,
+                success=True,
+                task_hint=task_hint,
+            )
 
         proxy_status = get_provider_proxy_status(model_info.provider)
         warnings: list[str] = []
@@ -144,6 +155,14 @@ async def handle(
     except ModelSwitcherError as e:
         # Server error - switch failed
         logger.error(f"Failed to switch model: {e}")
+        model_raw = arguments.get("model")
+        if index_service is not None and isinstance(model_raw, str):
+            task_hint_raw = arguments.get("task_hint")
+            index_service.record_switch_outcome(
+                model_raw,
+                success=False,
+                task_hint=task_hint_raw if isinstance(task_hint_raw, str) else None,
+            )
         details = dict(e.details) if getattr(e, "details", None) else {}
         # Reuse ai-lib error classification so agents get retry/fallback signals.
         ai_lib_diagnostics = describe_ai_lib_error(e)

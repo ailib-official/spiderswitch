@@ -11,6 +11,7 @@ import logging
 
 from mcp.types import TextContent, Tool
 
+from ..index.service import ModelIndexService
 from ..response import MCPResponse
 from ..runtime.base import Runtime
 from ..state import ModelStateManager
@@ -65,8 +66,9 @@ async def handle(
     runtime: Runtime,
     state_manager: ModelStateManager,
     arguments: dict[str, object],
+    index_service: ModelIndexService | None = None,
 ) -> list[TextContent]:
-    rec_result = await recommend.handle(runtime, arguments)
+    rec_result = await recommend.handle(runtime, arguments, index_service=index_service)
     rec_content = rec_result[0]
 
     try:
@@ -87,7 +89,9 @@ async def handle(
         if key in arguments:
             switch_args[key] = arguments[key]
 
-    switch_result = await switch.handle(runtime, state_manager, switch_args)
+    switch_result = await switch.handle(
+        runtime, state_manager, switch_args, index_service=index_service
+    )
     switch_content = switch_result[0]
 
     try:

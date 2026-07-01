@@ -136,6 +136,8 @@ MCP_TOOLS = [
     "exit_switcher",
     "recommend_model",
     "auto_switch",
+    "query_index",
+    "record_experience",
 ]
 
 MCP_PROMPTS = [

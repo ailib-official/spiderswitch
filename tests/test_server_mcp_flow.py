@@ -79,7 +79,7 @@ async def test_mcp_request_handlers_register_and_list_tools() -> None:
     root = result.root
     assert isinstance(root, types.ListToolsResult)
     tool_names = {tool.name for tool in root.tools}
-    assert {"switch_model", "list_models", "get_status", "exit_switcher", "recommend_model", "auto_switch"} <= tool_names
+    assert {"switch_model", "list_models", "get_status", "exit_switcher", "recommend_model", "auto_switch", "query_index", "record_experience"} <= tool_names
 
 
 @pytest.mark.asyncio

@@ -19,12 +19,13 @@ from mcp.server.stdio import stdio_server
 from mcp.types import GetPromptResult, Prompt, TextContent, Tool
 
 from . import prompts as prompt_catalog
+from .index.service import ModelIndexService
 from .response import MCPResponse
 from .runtime import PythonRuntime
 from .runtime.base import Runtime
 from .runtime.registry import RuntimeRegistry, RuntimeResolver
 from .state import ModelStateManager
-from .tools import auto_switch, recommend, reset, status, switch
+from .tools import auto_switch, query_index, recommend, record_experience, reset, status, switch
 from .tools import list as list_tool
 
 # Configure logging
@@ -62,6 +63,7 @@ def create_app(
     runtime: Runtime | None = None,
     runtimes: dict[str, Runtime] | None = None,
     state_manager: ModelStateManager | None = None,
+    index_service: ModelIndexService | None = None,
 ) -> Server:
     """Create MCP server with optional dependencies.
 
@@ -86,6 +88,18 @@ def create_app(
     registry = RuntimeRegistry(runtimes=runtime_map, default_runtime_id=default_runtime_id)
     resolver = RuntimeResolver(registry)
     _state = state_manager or ModelStateManager()
+
+    _index_service = index_service
+    if _index_service is None and isinstance(_runtime, PythonRuntime):
+        try:
+            _index_service = ModelIndexService.build_from_runtime(_runtime)
+            if _index_service is not None:
+                logger.info(
+                    "Capability index ready: %d models indexed",
+                    _index_service.index.total_models,
+                )
+        except Exception as index_error:
+            logger.warning("Capability index build failed: %s", index_error)
 
     def _resolve_target_runtime(args: dict[str, object]) -> Runtime:
         """Resolve the runtime instance for a tool call.
@@ -130,6 +144,8 @@ def create_app(
             reset.tool_schema(),
             recommend.tool_schema(),
             auto_switch.tool_schema(),
+            query_index.tool_schema(),
+            record_experience.tool_schema(),
         ]
 
     @app.call_tool()  # type: ignore[untyped-decorator]
@@ -150,7 +166,9 @@ def create_app(
         request_id = str(uuid4())
         try:
             if name == "switch_model":
-                return await switch.handle(_resolve_target_runtime(args), _state, args)
+                return await switch.handle(
+                    _resolve_target_runtime(args), _state, args, index_service=_index_service
+                )
             elif name == "list_models":
                 return await list_tool.handle(_resolve_target_runtime(args), args)
             elif name == "get_status":
@@ -171,9 +189,17 @@ def create_app(
                     target_runtime, _state, runtime_id=resolution.runtime_id, scope=scope
                 )
             elif name == "recommend_model":
-                return await recommend.handle(_resolve_target_runtime(args), args)
+                return await recommend.handle(
+                    _resolve_target_runtime(args), args, index_service=_index_service
+                )
             elif name == "auto_switch":
-                return await auto_switch.handle(_resolve_target_runtime(args), _state, args)
+                return await auto_switch.handle(
+                    _resolve_target_runtime(args), _state, args, index_service=_index_service
+                )
+            elif name == "query_index":
+                return await query_index.handle(_index_service, args)
+            elif name == "record_experience":
+                return await record_experience.handle(_index_service, args)
             else:
                 logger.warning(f"Unknown tool requested: {name}")
                 response = MCPResponse.error(

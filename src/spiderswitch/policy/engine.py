@@ -11,10 +11,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from ..validation import get_provider_api_key_status
 from .loader import ModelCatalog, ModelRecord
+
+if TYPE_CHECKING:
+    from ..index.builder import ModelCapabilityIndex
 
 
 class TaskHint(str, Enum):
@@ -107,8 +110,13 @@ class Recommendation:
 class PolicyEngine:
     """Score and rank models for agent runtime selection."""
 
-    def __init__(self, catalog: ModelCatalog) -> None:
+    def __init__(
+        self,
+        catalog: ModelCatalog,
+        index: ModelCapabilityIndex | None = None,
+    ) -> None:
         self._catalog = catalog
+        self._index = index
 
     def recommend(
         self,
@@ -128,6 +136,7 @@ class PolicyEngine:
             req_caps=req_caps,
             prefer_provider=prefer_provider,
             only_ready=only_ready_providers,
+            task_hint=hint.value,
         )
         if not candidates:
             raise ValueError(
@@ -186,9 +195,23 @@ class PolicyEngine:
         req_caps: set[str],
         prefer_provider: str | None,
         only_ready: bool,
+        task_hint: str = "chat",
     ) -> list[ModelRecord]:
+        allowed_ids: set[str] | None = None
+        if self._index is not None:
+            indexed = self._index.query(
+                required_capabilities=req_caps or None,
+                provider=prefer_provider,
+                task_hint=task_hint,
+                ready_only=only_ready,
+                limit=10_000,
+            )
+            allowed_ids = {e.model_id for e in indexed}
+
         out: list[ModelRecord] = []
         for record in self._catalog.models.values():
+            if allowed_ids is not None and record.id not in allowed_ids:
+                continue
             if prefer_provider and record.provider != prefer_provider:
                 continue
             if req_caps and not req_caps.issubset(set(record.capabilities)):
@@ -236,6 +259,14 @@ class PolicyEngine:
 
         if record.input_per_token is not None:
             score += 0.05
+
+        if self._index is not None:
+            entry = self._index.entries.get(record.id)
+            if entry is not None:
+                subj = entry.subjective.subjective_score
+                if subj > 0.55:
+                    score += (subj - 0.5) * 0.3
+                    reasons.append(f"subjective score {subj:.2f}")
 
         # Reward larger context windows for context-hungry tasks (guarded for None
         # so models without published context windows are unaffected).

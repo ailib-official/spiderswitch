@@ -12,6 +12,7 @@ from pathlib import Path
 from mcp.types import TextContent, Tool
 
 from ..errors import ModelSwitcherError
+from ..index.service import ModelIndexService
 from ..policy.engine import PolicyEngine
 from ..policy.loader import ModelCatalog
 from ..response import MCPResponse
@@ -85,7 +86,11 @@ def tool_schema() -> Tool:
     )
 
 
-async def handle(runtime: Runtime, arguments: dict[str, object]) -> list[TextContent]:
+async def handle(
+    runtime: Runtime,
+    arguments: dict[str, object],
+    index_service: ModelIndexService | None = None,
+) -> list[TextContent]:
     try:
         task_hint = arguments.get("task_hint", "chat")
         tier = arguments.get("tier", "balanced")
@@ -97,7 +102,8 @@ async def handle(runtime: Runtime, arguments: dict[str, object]) -> list[TextCon
             req_caps = [str(c) for c in req_caps_raw]
 
         catalog = _resolve_catalog(runtime)
-        engine = PolicyEngine(catalog)
+        index = index_service.index if index_service else None
+        engine = PolicyEngine(catalog, index=index)
         rec = engine.recommend(
             task_hint=str(task_hint),
             tier_preference=str(tier),
@@ -108,6 +114,8 @@ async def handle(runtime: Runtime, arguments: dict[str, object]) -> list[TextCon
 
         payload = rec.to_dict()
         payload["runtime_profile"] = runtime.describe_runtime_profile().to_dict()
+        if index_service is not None:
+            payload["index_summary"] = index_service.index.summary()
         payload["next_step"] = (
             f"Call auto_switch with same task_hint/tier, or switch_model to {rec.selected.model_id}"
         )

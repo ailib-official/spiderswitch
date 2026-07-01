@@ -7,6 +7,14 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 ## [Unreleased]
 
 ### Added
+- **Startup capability index** (`spiderswitch.index`): on every MCP server start, builds
+  structured inverted indexes over all models — layers: `raw` / `core` / `derived` facets /
+  readiness (BYOK). Powers `query_index`, faster `recommend_model` filtering, and subjective ranking.
+- **Subjective experience store** (`~/.spiderswitch/experience/models.json`): accumulates
+  switch success/failure, latency, and quality/speed/value ratings (1–5). MCP tool
+  `record_experience`; `switch_model` auto-records outcomes.
+- **New MCP tools**: `query_index` (capability + subjective query), `record_experience`.
+- **CLI**: `spiderswitch index` — dump capability index summary as JSON.
 - **Agent self-deploy guide** (`docs/AGENT_DEPLOY_GUIDE.md`): step-by-step playbook any agent can follow to install, configure, and verify spiderswitch as an MCP server (Cursor/OpenCode/Claude).
 - **Full agent-friendly CLI**: `version`, `info`, `setup` (one-shot deploy), `protocol setup|verify`, plus richer `doctor` output with `next_steps` and per-check `fix_commands`.
 - **Centralized heuristic hints** (`spiderswitch.hints`): structured error recovery catalog wired into `doctor`, CLI JSON outputs, and `switch_model` error details.
