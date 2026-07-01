@@ -6,6 +6,13 @@ The format is based on Keep a Changelog and this project follows Semantic Versio
 
 ## [Unreleased]
 
+### Added
+- PyPI publish workflow (`.github/workflows/publish-pypi.yml`) and `scripts/publish_pypi.sh`.
+- [docs/PUBLISHING.md](docs/PUBLISHING.md) — install channels and release checklist.
+
+### Fixed
+- Wheel metadata: `license-files = []` so `twine check` / PyPI upload succeed with hatchling ≥1.26.1.
+
 ## [0.7.0] - 2026-07-01
 
 ### Added

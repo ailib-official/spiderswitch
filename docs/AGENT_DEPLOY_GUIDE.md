@@ -19,8 +19,17 @@ Need model switching in an MCP client?
 **Fastest path (one command):**
 
 ```bash
-pip install spiderswitch && spiderswitch setup --client cursor
+pip install "spiderswitch>=0.7.0" && spiderswitch setup --client cursor
 ```
+
+If PyPI does not yet have 0.7.0, install from the GitHub Release wheel first:
+
+```bash
+pip install https://github.com/ailib-official/spiderswitch/releases/download/v0.7.0/spiderswitch-0.7.0-py3-none-any.whl
+spiderswitch setup --client cursor
+```
+
+See [docs/PUBLISHING.md](PUBLISHING.md) for PyPI release process.
 
 Then set API keys in the MCP client config and restart the client.
 
@@ -49,8 +58,13 @@ spiderswitch version
 ### Option A: PyPI / wheel
 
 ```bash
-pip install spiderswitch
-# or from a release wheel:
+# PyPI (after publish — see docs/PUBLISHING.md)
+pip install "spiderswitch>=0.7.0"
+
+# GitHub Release wheel (works before PyPI catch-up)
+pip install https://github.com/ailib-official/spiderswitch/releases/download/v0.7.0/spiderswitch-0.7.0-py3-none-any.whl
+
+# Local wheel from release assets
 pip install /path/to/spiderswitch-<version>-py3-none-any.whl
 ```
 

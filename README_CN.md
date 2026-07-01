@@ -27,6 +27,16 @@ MCP（Model Context Protocol）服务器，使Agent能够从[ai-lib生态系统]
 
 ### 安装
 
+**PyPI 安装**（版本发布到 PyPI 后）：
+
+```bash
+pip install "spiderswitch>=0.7.0"
+```
+
+若 PyPI 尚未更新，可从 [GitHub Release](https://github.com/ailib-official/spiderswitch/releases) 安装 wheel，详见 [docs/PUBLISHING.md](docs/PUBLISHING.md)。
+
+**源码安装**（开发）：
+
 ```bash
 # 克隆仓库
 git clone https://github.com/ailib-official/spiderswitch.git

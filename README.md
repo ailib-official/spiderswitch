@@ -28,6 +28,18 @@ MCP (Model Context Protocol) server that enables agents to dynamically switch AI
 
 ### Installation
 
+**From PyPI** (recommended once the version is published):
+
+```bash
+pip install spiderswitch
+# or pin a version:
+pip install "spiderswitch>=0.7.0"
+```
+
+> PyPI: https://pypi.org/project/spiderswitch/ — if the latest PyPI version is behind GitHub, install from the [Release wheel](https://github.com/ailib-official/spiderswitch/releases) instead (see [docs/PUBLISHING.md](docs/PUBLISHING.md)).
+
+**From source** (development):
+
 ```bash
 # Clone the repository
 git clone https://github.com/ailib-official/spiderswitch.git

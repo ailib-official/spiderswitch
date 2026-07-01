@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.26.1"]
 build-backend = "hatchling.build"
 
 [project]
@@ -9,6 +9,7 @@ description = "MCP server for dynamic AI model switching in ai-lib ecosystem"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT OR Apache-2.0"}
+license-files = []
 authors = [
     {name = "ai-lib team", email = "ai-lib@example.com"}
 ]
