@@ -17,6 +17,10 @@ MCP (Model Context Protocol) server that enables agents to dynamically switch AI
 - **Explicit Exit Path**: `exit_switcher` resets switcher runtime/state for clean fallback
 - **Auto Protocol Setup**: Auto-detects local `ai-protocol` path and sets `AI_PROTOCOL_PATH` for current process
 - **Official Dist Sync**: Best-effort sync of official `dist/v1/*.json` snapshot into local `ai-protocol/dist/v1`
+- **Pre-Built Capability Index** (0.7.0): Offline `spiderswitch index build` + fast JSON load at MCP startup (no YAML re-parse)
+- **Smart Routing**: `recommend_model` / `auto_switch` with local BYOK policy; `query_index` for capability-based lookup
+- **Subjective Experience**: `record_experience` accumulates quality/speed/value ratings to improve future ranking
+- **Agent Deploy Playbook**: `spiderswitch setup` one-shot install; see [docs/AGENT_DEPLOY_GUIDE.md](docs/AGENT_DEPLOY_GUIDE.md)
 
 ## Quick Start
 
@@ -65,6 +69,9 @@ Optional runtime env controls:
 - `AI_PROTOCOL_DIST_API_BASE_URL` to override GitHub API listing source for models/providers dist json.
 - `SPIDERSWITCH_LIST_CACHE_TTL_SEC` for `list_models` cache TTL (default: `5`).
 - `SPIDERSWITCH_STATUS_CACHE_TTL_SEC` for `get_status` cache TTL (default: `2`).
+- `SPIDERSWITCH_INDEX_PATH` to override persisted capability index location (default: `~/.spiderswitch/index/capability-index.json`).
+- `SPIDERSWITCH_INDEX_MAX_AGE_SEC` to warn when a loaded index exceeds a TTL (seconds).
+- `SPIDERSWITCH_INDEX_REBUILD_ON_START=1` to rebuild from YAML at startup if the index file is missing (slow fallback).
 
 ### One-Click Install (Plugin-Market Style)
 
@@ -72,9 +79,14 @@ Optional runtime env controls:
 bash scripts/install_one_click.sh
 ```
 
-Then generate MCP client config template:
+Then set up ai-protocol, **pre-build the capability index**, and verify:
 
 ```bash
+spiderswitch setup --client cursor          # protocol + MCP config + index build + doctor
+# or manually:
+spiderswitch protocol setup
+export AI_PROTOCOL_PATH="$HOME/.spiderswitch/ai-protocol"
+spiderswitch index build                    # persist ~/.spiderswitch/index/capability-index.json
 spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --force
 spiderswitch doctor --json
 ```
@@ -320,6 +332,41 @@ Recommend and switch to the best model for the current task in one call (BYOK, l
 
 Returns the switched model data with the embedded `recommendation` payload.
 
+### 7. query_index
+
+Query the pre-built capability index by structured requirements (capabilities, facets, tags, tier, subjective score).
+
+**Parameters:**
+- `required_capabilities`, `required_facets`, `required_tags` (arrays, optional)
+- `provider`, `tier`, `task_hint` (optional)
+- `ready_only` (boolean, default `true` — BYOK models only)
+- `min_subjective_score` (optional)
+- `limit` (optional, default `20`)
+
+Requires a persisted index (`spiderswitch index build`). MCP startup loads it directly without re-parsing YAML.
+
+### 8. record_experience
+
+Record subjective ratings (1–5) for a model. Accumulated scores influence `query_index` and routing rank.
+
+**Parameters:**
+- `model_id` (required)
+- `quality`, `speed`, `value` (optional, 1–5)
+- `task_hint` (optional)
+
+## CLI (agent-friendly)
+
+| Command | Purpose |
+|---------|---------|
+| `spiderswitch serve` | Run MCP stdio server |
+| `spiderswitch setup --client cursor` | One-shot: protocol + MCP config + **index build** + doctor |
+| `spiderswitch index build` | Pre-build capability index (cron-friendly) |
+| `spiderswitch index` | Load persisted index summary (JSON, fast) |
+| `spiderswitch doctor [--json]` | Health checks + fix hints |
+| `spiderswitch info` | Tools, prompts, runtime profile (JSON) |
+
+See [docs/AGENT_DEPLOY_GUIDE.md](docs/AGENT_DEPLOY_GUIDE.md) for the full deploy playbook.
+
 ## Prompt Injection (Agent Guidance)
 
 spiderswitch ships built-in guidance so agents know *when* and *how* to switch models,
@@ -439,7 +486,9 @@ spiderswitch/
 │   │   ├── status.py         # get_status tool
 │   │   ├── reset.py          # exit_switcher tool
 │   │   ├── recommend.py      # recommend_model tool
-│   │   └── auto_switch.py    # auto_switch tool
+│   │   ├── auto_switch.py    # auto_switch tool
+│   │   ├── query_index.py    # query_index tool
+│   │   └── record_experience.py  # record_experience tool
 │   ├── runtime/              # Runtime abstraction layer
 │   │   ├── base.py           # Base runtime interface
 │   │   ├── python_runtime.py # ai-lib-python implementation
@@ -447,6 +496,11 @@ spiderswitch/
 │   ├── policy/               # Local smart-routing policy engine
 │   │   ├── engine.py         # Scoring/ranking
 │   │   └── loader.py         # ai-protocol catalog loader
+│   ├── index/                # Pre-built capability index (load at startup)
+│   │   ├── store.py          # JSON persistence + protocol fingerprint
+│   │   ├── builder.py        # Inverted indexes + query
+│   │   └── experience.py     # Subjective experience store
+│   ├── hints.py              # Heuristic error/fix catalog for agents
 │   ├── validation.py         # Input validation + provider readiness
 │   ├── response.py           # Unified MCP response format
 │   ├── errors.py             # Error taxonomy + ai-lib error bridge

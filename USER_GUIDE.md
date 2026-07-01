@@ -34,6 +34,7 @@ bash scripts/install_one_click.sh
 After installation:
 
 ```bash
+spiderswitch setup --client cursor    # recommended: protocol + config + index build + doctor
 spiderswitch doctor --json
 spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --force
 ```
@@ -142,11 +143,44 @@ Supported `--client` values:
 
 ---
 
+## Capability index (0.7.0+)
+
+The capability index is **pre-built offline** and **loaded at MCP startup** — no YAML re-parse on every server start.
+
+```bash
+# After ai-protocol is available:
+spiderswitch index build              # writes ~/.spiderswitch/index/capability-index.json
+spiderswitch index                    # load-only summary (JSON)
+
+# Periodic refresh when ai-protocol updates (cron-friendly):
+0 3 * * * spiderswitch index build
+```
+
+`spiderswitch setup` runs `index build` automatically. Without a persisted index, MCP tools like `query_index` are unavailable unless `SPIDERSWITCH_INDEX_REBUILD_ON_START=1` is set.
+
+---
+
 ## CLI commands
 
 ### `spiderswitch serve`
 
 Run the MCP stdio server.
+
+### `spiderswitch setup`
+
+One-shot self-deploy: ai-protocol + MCP config + **index build** + doctor.
+
+```bash
+spiderswitch setup --client cursor   # or opencode / claude
+```
+
+### `spiderswitch index build`
+
+Pre-build and persist the capability index from ai-protocol (run once or on a schedule).
+
+### `spiderswitch index`
+
+Load the persisted index and print JSON summary (fast, no rebuild).
 
 ### `spiderswitch init`
 
@@ -161,16 +195,24 @@ Common flags:
 
 ### `spiderswitch doctor`
 
-Run health checks (python version, protocol path, key presence, proxy scheme, optional runtime probe).
+Run health checks (python version, protocol path, **capability index**, key presence, proxy scheme, optional runtime probe).
 
 Useful flags:
 
 - `--json` structured output
 - `--no-runtime-probe` fast check without model inventory probe
 
+### `spiderswitch info` / `spiderswitch version`
+
+Print deployment metadata or package version (`--json` supported for version).
+
+### `spiderswitch protocol setup|verify`
+
+Manage ai-protocol manifests.
+
 ---
 
-## MCP tools
+## MCP tools (8)
 
 ### `list_models`
 
@@ -211,6 +253,22 @@ Parameters:
 - `runtime_id` (optional)
 - `scope` (`all` or `runtime`, optional)
 
+### `recommend_model`
+
+Suggest the best model for a task using local BYOK policy (no upstream API call).
+
+### `auto_switch`
+
+Recommend and switch in one call.
+
+### `query_index`
+
+Query the pre-built capability index by capabilities, facets, tags, tier, or subjective score.
+
+### `record_experience`
+
+Rate a model (quality/speed/value 1–5) to improve future ranking.
+
 ---
 
 ## Runtime environment variables
@@ -222,6 +280,9 @@ Parameters:
 - `AI_PROTOCOL_DIST_API_BASE_URL`: override GitHub API listing URL
 - `SPIDERSWITCH_LIST_CACHE_TTL_SEC`: `list_models` cache TTL (default `5`)
 - `SPIDERSWITCH_STATUS_CACHE_TTL_SEC`: `get_status` cache TTL (default `2`)
+- `SPIDERSWITCH_INDEX_PATH`: persisted capability index file (default `~/.spiderswitch/index/capability-index.json`)
+- `SPIDERSWITCH_INDEX_MAX_AGE_SEC`: warn when loaded index exceeds TTL (seconds)
+- `SPIDERSWITCH_INDEX_REBUILD_ON_START=1`: rebuild from YAML at startup if index missing (slow fallback)
 
 ---
 
@@ -243,16 +304,24 @@ Parameters:
 - Verify `AI_PROTOCOL_PATH` points to a valid `ai-protocol` repository.
 - Check if `v1/models/*.yaml` exists under that path.
 
+### Capability index missing
+
+- Run `spiderswitch index build` after protocol setup.
+- Or use `spiderswitch setup --client cursor` which builds the index automatically.
+- Check `spiderswitch doctor --json` → `capability_index` check.
+
 ---
 
 ## Recommended verification flow
 
-1. `spiderswitch doctor --json`
-2. Start/restart MCP client
-3. Call `list_models`
-4. Call `switch_model` with a known model
-5. Call `get_status`
-6. Call `exit_switcher` (optional cleanup)
+1. `spiderswitch protocol verify`
+2. `spiderswitch index build`
+3. `spiderswitch doctor --json`
+4. Start/restart MCP client
+5. Call `list_models` or `query_index`
+6. Call `auto_switch` or `switch_model`
+7. Call `get_status`
+8. Call `exit_switcher` (optional cleanup)
 
 ---
 
@@ -260,6 +329,8 @@ Parameters:
 
 - `README.md` for project overview
 - `README_CN.md` for Chinese quick-start
+- `docs/AGENT_DEPLOY_GUIDE.md` for autonomous agent deploy playbook
+- `CHANGELOG.md` for release history
 - `USAGE_EXAMPLES.md` for usage snippets
 
 ---

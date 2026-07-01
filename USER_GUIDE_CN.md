@@ -34,6 +34,7 @@ bash scripts/install_one_click.sh
 安装后执行：
 
 ```bash
+spiderswitch setup --client cursor    # 推荐：协议 + 配置 + 索引构建 + doctor
 spiderswitch doctor --json
 spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --force
 ```
@@ -140,11 +141,39 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 
 ---
 
+## 能力索引（0.7.0+）
+
+能力索引**离线预构建**，MCP 启动时**直接加载 JSON**，不会每次重新解析 ai-protocol YAML。
+
+```bash
+spiderswitch index build              # 写入 ~/.spiderswitch/index/capability-index.json
+spiderswitch index                    # 只读加载摘要（JSON）
+
+# ai-protocol 更新后定期重建（可用 cron）：
+0 3 * * * spiderswitch index build
+```
+
+`spiderswitch setup` 会自动执行 `index build`。若索引不存在，`query_index` 等工具不可用（除非设置 `SPIDERSWITCH_INDEX_REBUILD_ON_START=1`）。
+
+---
+
 ## CLI 命令
 
 ### `spiderswitch serve`
 
 启动 MCP stdio 服务。
+
+### `spiderswitch setup`
+
+一键自部署：ai-protocol + MCP 配置 + **索引构建** + doctor。
+
+### `spiderswitch index build`
+
+从 ai-protocol 预构建并持久化能力索引。
+
+### `spiderswitch index`
+
+加载已持久化的索引并输出 JSON 摘要（快速，不重建）。
 
 ### `spiderswitch init`
 
@@ -159,16 +188,24 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 
 ### `spiderswitch doctor`
 
-执行健康检查（Python 版本、协议路径、密钥存在性、代理 scheme、可选 runtime probe）。
+执行健康检查（Python 版本、协议路径、**能力索引**、密钥、代理 scheme、可选 runtime probe）。
 
 常用参数：
 
 - `--json` 输出结构化结果
 - `--no-runtime-probe` 跳过模型探测以加快检查
 
+### `spiderswitch info` / `spiderswitch version`
+
+部署元数据或版本号（`version --json` 支持 JSON）。
+
+### `spiderswitch protocol setup|verify`
+
+管理 ai-protocol manifests。
+
 ---
 
-## MCP 工具说明
+## MCP 工具说明（8 个）
 
 ### `list_models`
 
@@ -209,6 +246,22 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 - `runtime_id`（可选）
 - `scope`（`all` 或 `runtime`，可选）
 
+### `recommend_model`
+
+按本地 BYOK 策略推荐模型（不调用上游 API）。
+
+### `auto_switch`
+
+推荐并切换（一步完成）。
+
+### `query_index`
+
+按能力、facet、标签、tier 或主观评分查询预构建索引。
+
+### `record_experience`
+
+对模型打分（质量/速度/价值 1–5），影响后续排序。
+
 ---
 
 ## 运行时环境变量
@@ -220,6 +273,9 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 - `AI_PROTOCOL_DIST_API_BASE_URL`：覆盖 GitHub API 列表源地址
 - `SPIDERSWITCH_LIST_CACHE_TTL_SEC`：`list_models` 缓存 TTL（默认 `5`）
 - `SPIDERSWITCH_STATUS_CACHE_TTL_SEC`：`get_status` 缓存 TTL（默认 `2`）
+- `SPIDERSWITCH_INDEX_PATH`：能力索引文件路径（默认 `~/.spiderswitch/index/capability-index.json`）
+- `SPIDERSWITCH_INDEX_MAX_AGE_SEC`：索引超过 TTL 时告警（秒）
+- `SPIDERSWITCH_INDEX_REBUILD_ON_START=1`：索引缺失时启动时从 YAML 重建（较慢兜底）
 
 ---
 
@@ -241,16 +297,23 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 - 检查 `AI_PROTOCOL_PATH` 是否指向有效的 `ai-protocol` 仓库。
 - 确认该路径下存在 `v1/models/*.yaml`。
 
+### 能力索引缺失
+
+- 执行 `spiderswitch index build`（或在 protocol 就绪后运行 `spiderswitch setup`）。
+- 查看 `spiderswitch doctor --json` 中的 `capability_index` 检查项。
+
 ---
 
 ## 推荐验证流程
 
-1. `spiderswitch doctor --json`
-2. 启动/重启 MCP 客户端
-3. 调用 `list_models`
-4. 调用 `switch_model` 切换一个已知模型
-5. 调用 `get_status`
-6. 调用 `exit_switcher`（可选清理）
+1. `spiderswitch protocol verify`
+2. `spiderswitch index build`
+3. `spiderswitch doctor --json`
+4. 启动/重启 MCP 客户端
+5. 调用 `list_models` 或 `query_index`
+6. 调用 `auto_switch` 或 `switch_model`
+7. 调用 `get_status`
+8. 调用 `exit_switcher`（可选清理）
 
 ---
 
@@ -258,6 +321,8 @@ spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --for
 
 - `README.md`：项目概览
 - `README_CN.md`：中文快速开始
+- `docs/AGENT_DEPLOY_GUIDE.md`：Agent 自部署指南
+- `CHANGELOG.md`：版本历史
 - `USAGE_EXAMPLES.md`：调用示例
 
 ---

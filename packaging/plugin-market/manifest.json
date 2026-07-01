@@ -12,7 +12,8 @@
   },
   "install": {
     "script": "scripts/install_one_click.sh",
-    "post_install_check": "spiderswitch doctor --json --no-runtime-probe"
+    "post_install_check": "spiderswitch doctor --json --no-runtime-probe",
+    "post_install_hint": "Run: spiderswitch setup --client cursor  (includes index build)"
   },
   "healthcheck": {
     "command": "spiderswitch",
@@ -31,6 +32,16 @@
       "key": "OPENAI_API_KEY",
       "required": false,
       "description": "Optional provider API key (can use other provider keys instead)."
+    },
+    {
+      "key": "SPIDERSWITCH_INDEX_PATH",
+      "required": false,
+      "description": "Path to persisted capability index JSON (default ~/.spiderswitch/index/capability-index.json)."
+    },
+    {
+      "key": "SPIDERSWITCH_INDEX_REBUILD_ON_START",
+      "required": false,
+      "description": "Set to 1 to rebuild index from YAML at startup if missing (slow fallback)."
     },
     {
       "key": "SPIDERSWITCH_LIST_CACHE_TTL_SEC",

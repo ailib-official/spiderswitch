@@ -16,8 +16,14 @@ MCP（Model Context Protocol）服务器，使Agent能够从[ai-lib生态系统]
 - **明确退出路径**：`exit_switcher` 可重置运行时与状态，便于回退
 - **自动协议路径**：自动探测本地 `ai-protocol` 并为当前进程设置 `AI_PROTOCOL_PATH`
 - **官方 Dist 同步**：启动时尽力同步官方 `dist/v1/*.json` 到本地 `ai-protocol/dist/v1`
+- **预构建能力索引**（0.7.0）：离线 `spiderswitch index build`，MCP 启动时直接加载 JSON（不重复解析 YAML）
+- **智能路由**：`recommend_model` / `auto_switch` 本地 BYOK 策略；`query_index` 按能力查询
+- **主观体验累积**：`record_experience` 记录质量/速度/价值评分，影响后续排序
+- **Agent 自部署指南**：`spiderswitch setup` 一键部署，详见 [docs/AGENT_DEPLOY_GUIDE.md](docs/AGENT_DEPLOY_GUIDE.md)
 
 ## 快速开始
+
+> **Agent 部署：** 见 [docs/AGENT_DEPLOY_GUIDE.md](docs/AGENT_DEPLOY_GUIDE.md)。一键：`spiderswitch setup --client cursor`
 
 ### 安装
 
@@ -62,6 +68,9 @@ export GOOGLE_API_KEY="..."
 - `AI_PROTOCOL_DIST_API_BASE_URL`：覆盖 models/providers dist json 的 GitHub API 列表源地址。
 - `SPIDERSWITCH_LIST_CACHE_TTL_SEC`：`list_models` 缓存 TTL（默认 `5` 秒）。
 - `SPIDERSWITCH_STATUS_CACHE_TTL_SEC`：`get_status` 缓存 TTL（默认 `2` 秒）。
+- `SPIDERSWITCH_INDEX_PATH`：能力索引文件路径（默认 `~/.spiderswitch/index/capability-index.json`）。
+- `SPIDERSWITCH_INDEX_MAX_AGE_SEC`：索引超过 TTL 时告警（秒）。
+- `SPIDERSWITCH_INDEX_REBUILD_ON_START=1`：索引缺失时在启动时从 YAML 重建（较慢的兜底）。
 
 ### 一键安装（插件市场形态）
 
@@ -72,6 +81,11 @@ bash scripts/install_one_click.sh
 安装后可执行：
 
 ```bash
+spiderswitch setup --client cursor          # 协议 + MCP 配置 + 索引构建 + doctor
+# 或手动：
+spiderswitch protocol setup
+export AI_PROTOCOL_PATH="$HOME/.spiderswitch/ai-protocol"
+spiderswitch index build                    # 写入 ~/.spiderswitch/index/capability-index.json
 spiderswitch init --client cursor --output ~/.cursor/mcp.spiderswitch.json --force
 spiderswitch doctor --json
 ```
