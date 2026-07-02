@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Publish scripts/publish-bundle/ai-lib-plans/ to github.com/ailib-official/ai-lib-plans
+# Publish scripts/publish-bundle/ai-lib-plans/ to github.com/hiddenpath/ai-lib-plans
 #
 # Usage:
-#   gh repo create ailib-official/ai-lib-plans --private   # first time only
+#   gh repo create hiddenpath/ai-lib-plans --private   # first time only (internal org)
 #   bash scripts/publish-ai-lib-plans.sh --from-bundle
 #
 # Or from an existing clone of ai-lib-plans:
@@ -12,8 +12,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE="$ROOT/scripts/publish-bundle/ai-lib-plans"
-ORG_REPO="git@github.com:ailib-official/ai-lib-plans.git"
-HTTPS_REPO="https://github.com/ailib-official/ai-lib-plans.git"
+ORG_REPO="git@github.com:hiddenpath/ai-lib-plans.git"
+HTTPS_REPO="https://github.com/hiddenpath/ai-lib-plans.git"
 WORKDIR="${AI_LIB_PLANS_WORKDIR:-/tmp/ai-lib-plans-publish}"
 
 FROM_BUNDLE=0
@@ -35,7 +35,7 @@ if git ls-remote "$HTTPS_REPO" HEAD &>/dev/null; then
   git clone "$HTTPS_REPO" "$WORKDIR"
 else
   echo "==> Initializing new ai-lib-plans repo (remote must be created first)"
-  echo "    Run: gh repo create ailib-official/ai-lib-plans --private"
+  echo "    Run: gh repo create hiddenpath/ai-lib-plans --private"
   git init "$WORKDIR"
   git -C "$WORKDIR" branch -M main
   git -C "$WORKDIR" remote add origin "$HTTPS_REPO" 2>/dev/null || true

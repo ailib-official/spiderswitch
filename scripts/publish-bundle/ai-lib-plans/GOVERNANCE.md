@@ -10,9 +10,9 @@
 
 ## 1. Purpose
 
-These rules ensure documents in **`ailib-official/ai-lib-plans`** function as **binding internal business guidance**, not informal notes. They apply to all repositories under the ai-lib organization and to partner repos that ship ai-lib–branded products.
+These rules ensure documents in **`hiddenpath/ai-lib-plans`** function as **binding internal business guidance**, not informal notes. They apply to all repositories under the ai-lib ecosystem (public `ailib-official/*` product repos and internal `hiddenpath/*` assets) and to partner repos that ship ai-lib–branded products.
 
-**Canonical location:** `https://github.com/ailib-official/ai-lib-plans` — product repos **must not** mirror the charter locally (see [REPO_ADOPTION.md](./REPO_ADOPTION.md)).
+**Canonical location:** `hiddenpath/ai-lib-plans` — CONFIDENTIAL plans **must not** live under `ailib-official` (public org). Product repos **must not** mirror the charter locally (see [REPO_ADOPTION.md](./REPO_ADOPTION.md)).
 
 ## 2. Authority hierarchy
 
@@ -39,7 +39,7 @@ Amendment approvals in §4 reference the assigned owners above until RACI is exp
 
 ### 4.1 Minor (clarification, typo, non-normative diagram)
 
-- PR to **`ailib-official/ai-lib-plans`** `main` with label `plans-minor`  
+- PR to **`hiddenpath/ai-lib-plans`** `main` with label `plans-minor`  
 - One Portfolio Owner or Product Owner approval  
 - Patch version bump in charter (`v1.0.1`)
 
@@ -78,7 +78,7 @@ PRs that touch any of the following require checkbox in description linking to c
 - MCP tool descriptions implying Host LLM control  
 - New top-level product repo  
 
-Template: use [`.github/pull_request_template.md`](./.github/pull_request_template.md) in **this repo**, published to org `ailib-official/.github` for all product lines:
+Template: use [`.github/pull_request_template.md`](./.github/pull_request_template.md) in **this repo**. Optionally mirror to `hiddenpath/.github` for internal repos — **not** to `ailib-official/.github` (public org).
 
 ```markdown
 ## Portfolio alignment
@@ -96,11 +96,17 @@ Every quarter:
 3. Audit public messaging samples (README, Gumroad, plugin manifest)  
 4. Update charter version and review log (appendix C in charter)
 
-### 5.4 Confidentiality
+### 5.4 Confidentiality and org separation
 
-- Do **not** link ai-lib-plans from **public** README, PyPI, or plugin market copy (org members use direct repo access)  
-- Do **not** copy charter into product repositories  
-- Contractors: NDA + read-only access to ai-lib-plans on need-to-know basis  
+| Org | Purpose | ai-lib-plans |
+|-----|---------|--------------|
+| **`ailib-official`** | Public OSS, PyPI, plugin market, open README | **Must not** host charter or CONFIDENTIAL plans |
+| **`hiddenpath`** | Internal-only repos, NDA material, pre-release strategy | **Canonical home** for ai-lib-plans |
+
+- Do **not** link ai-lib-plans from **public** README, PyPI, or plugin market copy (org members use direct repo access under hiddenpath)
+- Do **not** copy charter into product repositories under `ailib-official`
+- Do **not** create `ailib-official/ai-lib-plans` — violates org separation policy
+- Contractors: NDA + read-only access to hiddenpath/ai-lib-plans on need-to-know basis  
 
 ## 6. Relationship to code
 
