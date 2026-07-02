@@ -4,6 +4,7 @@
 > **Version:** 1.0.0  
 > **Effective:** 2026-07-01  
 > **Parent:** [PRODUCT_LINE_CHARTER.md](./PRODUCT_LINE_CHARTER.md) §7  
+> **Identity Owner:** Alex Wang  
 
 ## 1. Problem statement
 
@@ -135,7 +136,7 @@ flowchart LR
 | **BYOK provider key** | `tenant_id` (+ optional env) | Tenant | L3 or DATA-BYOK L2 |
 | **Subject session** | `(tenant_id, subject_id)` | Product login | Eos UI, aidebate session |
 | **MCP deployment token** | `deployment_id` | Tenant integrator | Authenticate MCP server to Control API |
-| **Operator admin** | platform | Staff | Infra only |
+| **Operator admin** | platform | Alex Wang (platform) | Infra only |
 
 **Rules:**
 

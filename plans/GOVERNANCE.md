@@ -2,7 +2,11 @@
 
 > **Classification:** CONFIDENTIAL · INTERNAL  
 > **Status:** Active  
-> **Effective:** 2026-07-01
+> **Effective:** 2026-07-01  
+> **Portfolio Owner:** Alex Wang  
+> **Infra Owner (L0/L1/L3):** Alex Wang  
+> **Identity Owner:** Alex Wang  
+> **Product Owner (all L2 SKUs):** Alex Wang  
 
 ## 1. Purpose
 
@@ -20,14 +24,14 @@ When documents conflict, resolve in this order:
 
 ## 3. Roles
 
-| Role | Responsibility |
-|------|----------------|
-| **Portfolio Owner** | Approves charter amendments; chairs quarterly review |
-| **Product Owner (per L2 SKU)** | Keeps product roadmap aligned with charter; files amendment requests |
-| **Infra Owner (L0/L1/L3)** | prism-core, Gateway, ai-lib runtimes; publishes integration contracts |
-| **Identity Owner** | Cross-product auth, tenant model, billing identity mapping |
+| Role | Responsibility | Assigned |
+|------|----------------|----------|
+| **Portfolio Owner** | Approves charter amendments; chairs quarterly review | Alex Wang |
+| **Product Owner (per L2 SKU)** | Keeps product roadmap aligned with charter; files amendment requests | Alex Wang (all SKUs) |
+| **Infra Owner (L0/L1/L3)** | prism-core, Gateway, ai-lib runtimes; publishes integration contracts | Alex Wang |
+| **Identity Owner** | Cross-product auth, tenant model, billing identity mapping | Alex Wang |
 
-*Initial assignment: document in charter header metadata until formal RACI is published.*
+Amendment approvals in §4 reference the assigned owners above until RACI is expanded.
 
 ## 4. Amendment workflow
 

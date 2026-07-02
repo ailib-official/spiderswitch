@@ -5,6 +5,10 @@
 > **Effective:** 2026-07-01  
 > **Next review:** 2026-10-01  
 > **Supersedes:** Ad-hoc per-repo product narratives  
+> **Portfolio Owner:** Alex Wang  
+> **Infra Owner:** Alex Wang  
+> **Identity Owner:** Alex Wang  
+> **Product Owner (L2):** Alex Wang  
 
 **Binding guidance for portfolio decisions.** Public docs must not exceed the promises defined here without a Major amendment ([GOVERNANCE.md](./GOVERNANCE.md)).
 
@@ -185,10 +189,10 @@ flowchart LR
 
 | Milestone | Deliverable | Owner |
 |-----------|-------------|-------|
-| M1 | Publish `prism-core` + Control API spec | Infra |
-| M2 | Eos proxy delegates to Prism (or shared crate) | Eos + Infra |
-| M3 | spiderswitch `switch_model` → Control API when `routing_mode=gateway` | Spider + Infra |
-| M4 | Deprecation notice for duplicate proxy configs | Portfolio |
+| M1 | Publish `prism-core` + Control API spec | Alex Wang |
+| M2 | Eos proxy delegates to Prism (or shared crate) | Alex Wang |
+| M3 | spiderswitch `switch_model` → Control API when `routing_mode=gateway` | Alex Wang |
+| M4 | Deprecation notice for duplicate proxy configs | Alex Wang |
 
 Until M3, **L2-SPIDER default public claim = control / recommendation only**.
 
@@ -323,7 +327,7 @@ Copy into PR when proposing a new product:
 
 | Date | Version | Change | Approver |
 |------|---------|--------|----------|
-| 2026-07-01 | 1.0.0 | Initial charter | (Portfolio Owner TBD) |
+| 2026-07-01 | 1.0.0 | Initial charter | Alex Wang |
 
 ---
 

@@ -8,4 +8,4 @@
 - [ ] New or changed monetized surface: **no** / SKU appendix updated
 - [ ] Public README / manifest promises do not exceed charter
 
-*If unsure, ask Portfolio Owner before merge.*
+*Portfolio Owner: Alex Wang — contact before merge if unsure.*

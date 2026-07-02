@@ -10,4 +10,5 @@ Use when opening PRs that touch: gateway/proxy, auth, API keys, billing, MCP too
 - [ ] Public docs do not over-promise vs charter
 ```
 
-Labels: `plans-minor` | `plans-major` | `plans-emergency`
+Labels: `plans-minor` | `plans-major` | `plans-emergency`  
+**Owner:** Alex Wang (Portfolio / Infra / Identity)

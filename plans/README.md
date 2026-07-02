@@ -20,6 +20,8 @@ This folder holds **authoritative internal planning** for the ai-lib product por
 2. **No silent SKUs** — New monetized surfaces require a charter appendix entry before launch.
 3. **End-users are not our customers by default** — We manage **tenants**; tenants manage **their users** (see identity doc).
 
+**Owners (internal):** Portfolio / Infra / Identity / Product — **Alex Wang** (see [GOVERNANCE.md](./GOVERNANCE.md)).
+
 ## Amendment process
 
-See [GOVERNANCE.md](./GOVERNANCE.md). Summary: PR to `main` with `plans/` label, portfolio owner review, version bump in charter header.
+See [GOVERNANCE.md](./GOVERNANCE.md). Summary: PR to `main` with `plans/` label, Alex Wang review as Portfolio Owner, version bump in charter header.
